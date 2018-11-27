@@ -16,8 +16,7 @@ Confounds removal is based on a projection on the orthogonal of the signal space
 Orthogonalization between temporal filters and confound removal is based on suggestions in Lindquist, M., Geuter, S., Wager, T., & Caffo, B. (2018). Modular preprocessing pipelines can reintroduce artifacts into fMRI data. bioRxiv, 407676.
 """
 # TODO:  
-# + pass input arguments
-# + z dimension?
+# 
 
 import pandas as pd
 import numpy as np
@@ -71,15 +70,15 @@ print(image.load_img('sub-01_task-rest_bold_space-MNI152NLin2009cAsym_preproc.ni
 fmri_img = image.load_img('sub-01_task-rest_bold_space-MNI152NLin2009cAsym_preproc.nii.gz')
 data = fmri_img.get_data()
 
-#(x, y, t)
-signals = data[:, :, 0, :]
+#(x, y, z, t)  --> (w, t) --> (t, w)
+signals = np.reshape(data, (data.shape[0]*data.shape[1]*data.shape[2], data.shape[-1])).T 
 
 # transpose so we have time as the first dimension / axis-0
 # (t, y, x)
-signals = signals.T 
+#signals = signals.T 
 
 # (t, y*x)
-signals_2d = signals.reshape(signals.shape[0], signals.shape[1]*signals.shape[2])
+#signals_2d = signals.reshape(signals.shape[0], signals.shape[1]*signals.shape[2])
 
 detrend_flag = False
 
@@ -94,7 +93,7 @@ confounds_signals = np.vstack((csf, wm, frm_disp_bin)).T
 import nilearn as nl
 
 # (t, y*x)
-out_signals = nl.signal.clean(signals_2d, 
+out_signals = nl.signal.clean(signals, 
                                     standardize=std_flag, detrend=detrend_flag, 
                                     confounds=confounds_signals,
                                     t_r=tr_time,
@@ -102,4 +101,4 @@ out_signals = nl.signal.clean(signals_2d,
 
 
 # (t, y*x) -> (t, y, x) - > (x, y, t)
-out_signal = np.reshape(out_signal, (signals.shape[0], signals.shape[1], signals.shape[2])).T
+#out_signal = np.reshape(out_signal, (signals.shape[0], signals.shape[1], signals.shape[2])).T
