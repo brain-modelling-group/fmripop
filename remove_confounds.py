@@ -129,9 +129,6 @@ parser.add_argument('--standardize',
 args = parser.parse_args()
 
 
-
-#confound_filename = 'sub-01_task-rest_bold_confounds.tsv'
-
 # This loads the tsv file in a DataFrame. 
 # The function  read_csv() infers the headers of teach colum. 
 # Row indexing starts at 0,
