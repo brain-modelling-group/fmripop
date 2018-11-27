@@ -1,104 +1,192 @@
 #!/usr/bin/env python 
 
-# author: Paula Sanz-Leon - nov 2018
+"""
+This function loads two files:
+    1)  *_confounds.tsv 
+    2)  *_preproc.nii.gz
 
-# import stuff
-# pandas version '0.23.4'
-# Python 3.7 
-# IPython 6.5.0
-# Anaconda 5.5.0
-# Uses nilearn & nibabel 
+It then passes the confounds timeseries and the 4D
+data to a `nilearn` function which removes/regresses out
+the confounds specified by the user and returns the cleaned 4D data. 
+
+For help type:
+    python remove_confounds.py -h
+
+
+Usage:
+    python remove_confounds.py --niipath '/path/to/file/sub-01_task-rest_bold_space-MNI152NLin2009cAsym_preproc.nii.gz'
+                            --maskpath '/path/to/file/sub-01_task-rest_bold_space-MNI152NLin2009cAsym_brainmask.nii.gz'
+                            --tsvpath '/path/to/file/sub-01_task-rest_bold_confounds.tsv' 
+
+
+TESTED WITH:
+# Anaconda 5.5.0 
+# Python 3.7.0 
+# pandas 0.23.4
+# numpy 1.15.1
+# nilearn 0.5.0
+# nibabel 2.3.1
+
+REFERENCES:  
+[1] Confounds removal is based on a projection on the orthogonal of 
+the signal space. Friston, K. J., A. P. Holmes, K. J. Worsley, 
+J.-P. Poline, C. D. Frith, et R. S. J. Frackowiak. 
+“Statistical Parametric Maps in Functional Imaging: 
+A General Linear Approach”. Human Brain Mapping 2, no 4 (1994): 189-210.
+
+
+[2] Lindquist, M., Geuter, S., Wager, T., & Caffo, B. (2018). 
+Modular preprocessing pipelines can reintroduce artifacts into fMRI data. bioRxiv, 407676.
+
+.. moduleauthor:: Paula Sanz-Leon <paula.sanz-leon@qimrberghofer.edu.au>
 
 """
-References: 
-Confounds removal is based on a projection on the orthogonal of the signal space. See Friston, K. J., A. P. Holmes, K. J. Worsley, J.-P. Poline, C. D. Frith, et R. S. J. Frackowiak. “Statistical Parametric Maps in Functional Imaging: A General Linear Approach”. Human Brain Mapping 2, no 4 (1994): 189-210.
 
-Orthogonalization between temporal filters and confound removal is based on suggestions in Lindquist, M., Geuter, S., Wager, T., & Caffo, B. (2018). Modular preprocessing pipelines can reintroduce artifacts into fMRI data. bioRxiv, 407676.
-"""
-# TODO:  
-# 
+# import standard python packages
+import argparse
+import time
+import json
 
-import pandas as pd
+# Start tracking execution time
+start_time = time.time()
+
+# import standard scientific python packages
 import numpy as np
+import pandas as pd
+
+# import neuroimaging packages
+import nilearn.image as nl_img
 
 
-#path_to_file = '/home/paula/mnt_ldrive/Lab_LucaC/2_OCD_TMS_Clinical_Trial/1_Patients_Records_Data/z_interim_analyses2018/x_fmriprep/1_P01_P02/1_OCD_Pre/output_dir/fmriprep/sub-01/func/'
-#path_to_file = '/home/lucac/ldrive/Lab_LucaC/2_OCD_TMS_Clinical_Trial/1_Patients_Records_Data/z_interim_analyses2018/x_fmriprep/1_P01_P02/1_OCD_Pre/output_dir/fmriprep/sub-01/func/ ''
 
-confound_filename = 'sub-01_task-rest_bold_confounds.tsv'
+# Create parser for options
+parser = argparse.ArgumentParser(
+    description='Handle parameters to remove confounders from 4D frmi images.')
 
-# This loads the file in a DataFrame. 
+# These parameters must be passed to the function
+parser.add_argument('--niipath', 
+    type    = str, 
+    default = None,
+    help    ='The path to the nii.gz file whose data will be cleaned.')
+
+parser.add_argument('--tsvpath', 
+    type    = str, 
+    default = None,
+    help    ='The path to the tsv file with the confounders.')
+
+
+parser.add_argument('--maskpath', 
+    type    = str, 
+    default = None,
+    help    ='The path of the nii.gz file with the mask.')
+
+# These parameters have default values. 
+parser.add_argument('--nconf',
+    type    = int,
+    default = 9,
+    help    = 'The number of confounders to be removed.')
+
+parser.add_argument('--confound_list', 
+    type    = list, 
+    default = ['CSF', 'WhiteMatter','FramewiseDisplacement', 
+               'X', 'Y', 'Z', 'RotX', 'RotY', 'RotZ'],
+    help    = 'A list with the name of the confounders to remove. Use the headers in the tsv file.')
+
+parser.add_argument('--low_pass',
+    type    = float, 
+    default = 0.1,
+    help    ='The low-pass filter cutoff frequency in [Hz].')
+
+parser.add_argument('--high_pass',
+    type    = float, 
+    default = 0.01,
+    help    ='The high-pass filter cutoff frequency in [Hz].')
+
+parser.add_argument('--fmw_disp_th',
+    dest    = 'fmw_disp_th', 
+    type    = float, 
+    default = 0.4,
+    help    ='Threshold to binarize the timeseries of FramewiseDisplacement confound. This value is between 0 and 1 -- If you dont believe me, ask Luca.')
+
+parser.add_argument('--tr',
+    type    = float,
+    default = 0.81,
+    help    ='The repetition time (TR) in [seconds].')
+
+parser.add_argument('--detrend', 
+    dest    = 'detrend', 
+    action  = 'store_true',
+    default = False, 
+    help    = 'Use this flag if you want to detrend the signals prior to confound removal.')
+
+parser.add_argument('--standardize', 
+    dest    = 'standardize', 
+    action  = 'store_true',
+    default = False,
+    help    = 'Use this flag if you want to standardize the output signal between [0 1].')
+
+
+args = parser.parse_args()
+
+
+
+#confound_filename = 'sub-01_task-rest_bold_confounds.tsv'
+
+# This loads the tsv file in a DataFrame. 
 # The function  read_csv() infers the headers of teach colum. 
 # Row indexing starts at 0,
-df = pd.read_csv(confound_filename, sep='\t')
+df = pd.read_csv(args.tsvpath, sep='\t')
 
-
-# Remove indices
+# Remove row indices
 ra = df.to_records(index=False)
 
-# Get shape of the DataFrame
 tpts, nregressors = df.shape
 
-# Confounders to remove
 
-['CSF', 'WhiteMatter','FramewiseDisplacement', 'X', 'Y', 'Z', 'RotX', 'RotY', 'RotZ']
+# Check if we are removing FramewiseDisplacement
+if 'FramewiseDisplacement' in args.confound_list:
+    frm_disp = ra['FramewiseDisplacement']
 
-# in [0, 1]
-fw_disp_threshold = 0.4
+    # Binarizer timeseries of FramewiseDisplacement
+    frm_disp_bin = np.where(frm_disp > args.fmw_disp_th, 1, 0)
 
-# CSF counfound array
-csf = ra['CSF']
+# Allocate memory for the confound array
+confounds_signals = np.zeros((tpts, args.nconf))
 
-# White matter confound array 
-wm  = ra['WhiteMatter']
+# Build the confound array
+for idx, this_confound in enumerate(args.confound_list):
+    if this_confound != 'FramewiseDisplacement':
+        confounds_signals[:, idx] = ra[this_confound]
+    else:
+        confounds_signals[:, idx] = frm_disp_bin
 
-frm_disp = ra['FramewiseDisplacement']
-
-frm_disp_bin = np.where(frm_disp > fw_disp_threshold, 1, 0)
-
-
-# Loading the data 
-
-from nilearn import image
-
-fmri_filename = 'sub-01_task-rest_bold_space-MNI152NLin2009cAsym_preproc.nii.gz'
-
-
-print(image.load_img('sub-01_task-rest_bold_space-MNI152NLin2009cAsym_preproc.nii.gz').shape)
-
-
-fmri_img = image.load_img('sub-01_task-rest_bold_space-MNI152NLin2009cAsym_preproc.nii.gz')
-data = fmri_img.get_data()
-
-#(x, y, z, t)  --> (w, t) --> (t, w)
-signals = np.reshape(data, (data.shape[0]*data.shape[1]*data.shape[2], data.shape[-1])).T 
-
-# transpose so we have time as the first dimension / axis-0
-# (t, y, x)
-#signals = signals.T 
-
-# (t, y*x)
-#signals_2d = signals.reshape(signals.shape[0], signals.shape[1]*signals.shape[2])
-
-detrend_flag = False
-
-std_flag = False
-
-tr_time = 0.81
-
-confounds_signals = np.vstack((csf, wm, frm_disp_bin)).T
-
-#import pdb; pdb.set_trace()
-
-import nilearn as nl
-
-# (t, y*x)
-out_signals = nl.signal.clean(signals, 
-                                    standardize=std_flag, detrend=detrend_flag, 
+# Do the stuff
+out_img = nl_img.clean_img(args.niipath, 
+                                    standardize=args.standardize, 
+                                    detrend=args.detrend, 
                                     confounds=confounds_signals,
-                                    t_r=tr_time,
-                                    high_pass=0.01, low_pass=0.1)
+                                    t_r=args.tr,
+                                    high_pass=args.high_pass, 
+                                    low_pass=args.low_pass,
+                                    mask_img=args.maskpath)
 
 
-# (t, y*x) -> (t, y, x) - > (x, y, t)
-#out_signal = np.reshape(out_signal, (signals.shape[0], signals.shape[1], signals.shape[2])).T
+# Output filename
+output_filename = args.niipath[:-7]
+output_filename += '_confounds-removed.nii.gz'
+
+# Save the clean data in a separate file
+out_img.to_filename(output_filename)
+
+# Save the input arguments in a text file with a timestamp
+input_par_dict = vars(args)
+
+
+timestamp = time.strftime("%Y-%m-%d-%H%M%S")
+filename  = timestamp + '_input_parameters_confound_removal.txt'
+
+with open(filename, 'w') as file:
+     file.write(json.dumps(input_par_dict)) # use `json.loads` to do the reverse
+
+
+print("--- %s seconds ---" % (time.time() - start_time))
