@@ -16,7 +16,8 @@ Confounds removal is based on a projection on the orthogonal of the signal space
 Orthogonalization between temporal filters and confound removal is based on suggestions in Lindquist, M., Geuter, S., Wager, T., & Caffo, B. (2018). Modular preprocessing pipelines can reintroduce artifacts into fMRI data. bioRxiv, 407676.
 """
 # TODO:  
-# 
+# + pass input arguments
+# + z dimension?
 
 import pandas as pd
 import numpy as np
