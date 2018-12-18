@@ -107,7 +107,7 @@ parser.add_argument('--low_pass',
 parser.add_argument('--high_pass',
     type    = float, 
     default = 0.01,
-    help    ='The high-pass filter cutoff frequency in [Hz].')
+    help    ='The high-pass filter cutoff frequency in [Hz]. Set it to -1 if you dont want high-pass filtering.' )
 
 parser.add_argument('--fmw_disp_th',
     dest    = 'fmw_disp_th', 
@@ -136,10 +136,17 @@ parser.add_argument('--add_mean_img_back',
     dest    = 'add_mean_img_back', 
     action  = 'store_true',
     default = True,
-    help    = 'Use this flag if you want to add the mean/average original image to the cleaned data, post filtering and confound regression.')
+    help    = 'Use this flag if you want to add the mean/average original image to the cleaned data, post filtering and confound regression. Disable this flag if you do not use high-pass filtering.')
 
 
 args = parser.parse_args()
+
+# Check if we want high-pass filtering:
+
+if args.high_pass < 0:
+    args.high_pass = None
+    # Disable adding the mean after cleaning the data. 
+    args.add_mean_img_back = False
 
 
 # This loads the tsv file in a DataFrame. 
@@ -179,6 +186,7 @@ out_img = nl_img.clean_img(args.niipath,
                                     high_pass=args.high_pass, 
                                     low_pass=args.low_pass,
                                     mask_img=args.maskpath)
+
 
 
 
