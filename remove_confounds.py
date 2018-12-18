@@ -1,13 +1,17 @@
 #!/usr/bin/env python 
 
 """
-This function loads two files:
+This function loads three files:
     1)  *_confounds.tsv 
     2)  *_preproc.nii.gz
+    3)  *_brainmask.nii.gz
 
 It then passes the confounds timeseries and the 4D
 data to a `nilearn` function which removes/regresses out
 the confounds specified by the user and returns the cleaned 4D data. 
+
+Find the latest version of this code at:
+https://gist.github.com/pausz/70203386a608fcf82e5c6051054d97e1
 
 For help type:
     python remove_confounds.py -h
@@ -27,6 +31,9 @@ TESTED WITH:
 # nilearn 0.5.0
 # nibabel 2.3.1
 
+NOTES: 
+Warning about using butterworth filter: https://github.com/nilearn/nilearn/issues/374
+
 REFERENCES:  
 [1] Confounds removal is based on a projection on the orthogonal of 
 the signal space. Friston, K. J., A. P. Holmes, K. J. Worsley, 
@@ -39,7 +46,7 @@ A General Linear Approach”. Human Brain Mapping 2, no 4 (1994): 189-210.
 Modular preprocessing pipelines can reintroduce artifacts into fMRI data. bioRxiv, 407676.
 
 .. moduleauthor:: Paula Sanz-Leon <paula.sanz-leon@qimrberghofer.edu.au>
-
+    
 """
 
 # import standard python packages
@@ -84,17 +91,17 @@ parser.add_argument('--maskpath',
 parser.add_argument('--nconf',
     type    = int,
     default = 9,
-    help    = 'The number of confounders to be removed.')
+    help    = 'The number of confounds to be removed.')
 
 parser.add_argument('--confound_list', 
     type    = list, 
-    default = ['CSF', 'WhiteMatter','FramewiseDisplacement', 
+    default = ['CSF', 'WhiteMatter', 'FramewiseDisplacement',
                'X', 'Y', 'Z', 'RotX', 'RotY', 'RotZ'],
     help    = 'A list with the name of the confounders to remove. Use the headers in the tsv file.')
 
 parser.add_argument('--low_pass',
     type    = float, 
-    default = 0.1,
+    default = 0.125,
     help    ='The low-pass filter cutoff frequency in [Hz].')
 
 parser.add_argument('--high_pass',
@@ -116,7 +123,7 @@ parser.add_argument('--tr',
 parser.add_argument('--detrend', 
     dest    = 'detrend', 
     action  = 'store_true',
-    default = False, 
+    default = True, 
     help    = 'Use this flag if you want to detrend the signals prior to confound removal.')
 
 parser.add_argument('--standardize', 
@@ -124,6 +131,12 @@ parser.add_argument('--standardize',
     action  = 'store_true',
     default = False,
     help    = 'Use this flag if you want to standardize the output signal between [0 1].')
+
+parser.add_argument('--add_mean_img_back', 
+    dest    = 'add_mean_img_back', 
+    action  = 'store_true',
+    default = True,
+    help    = 'Use this flag if you want to add the mean/average original image to the cleaned data, post filtering and confound regression.')
 
 
 args = parser.parse_args()
@@ -145,7 +158,7 @@ if 'FramewiseDisplacement' in args.confound_list:
     frm_disp = ra['FramewiseDisplacement']
 
     # Binarizer timeseries of FramewiseDisplacement
-    frm_disp_bin = np.where(frm_disp > args.fmw_disp_th, 1, 0)
+    frm_disp_bin = np.where(frm_disp > args.fmw_disp_th, 1.0, 0.0)
 
 # Allocate memory for the confound array
 confounds_signals = np.zeros((tpts, args.nconf))
@@ -168,8 +181,20 @@ out_img = nl_img.clean_img(args.niipath,
                                     mask_img=args.maskpath)
 
 
+
+if args.add_mean_img_back:
+
+    # Compute the mean of the images (in the time dimension of 4th dimension)
+    orig_mean_img = nl_img.mean_img(args.niipath) 
+
+    # Add the mean image back into the clean image frames
+    *xyz, time_frames = out_img.shape
+    for this_frame in range(time_frames): 
+        out_img.get_data()[..., this_frame] += orig_mean_img.get_data() 
+
+
 # Output filename
-output_filename = args.niipath[:-7]
+output_filename, _ = args.niipath.split(".nii.gz") 
 output_filename += '_confounds-removed.nii.gz'
 
 # Save the clean data in a separate file
