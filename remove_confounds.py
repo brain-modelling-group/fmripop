@@ -161,8 +161,8 @@ tpts, nregressors = df.shape
 
 
 # Check if we are removing FramewiseDisplacement
-if 'FramewiseDisplacement' in args.confound_list:
-    frm_disp = ra['FramewiseDisplacement']
+if 'framewise_displacement' in args.confound_list:
+    frm_disp = ra['framewise_displacement']
 
     # Binarizer timeseries of FramewiseDisplacement
     frm_disp_bin = np.where(frm_disp > args.fmw_disp_th, 1.0, 0.0)
@@ -172,7 +172,7 @@ confounds_signals = np.zeros((tpts, args.nconf))
 
 # Build the confound array
 for idx, this_confound in enumerate(args.confound_list):
-    if this_confound != 'FramewiseDisplacement':
+    if this_confound != 'framewise_displacement':
         confounds_signals[:, idx] = ra[this_confound]
     else:
         confounds_signals[:, idx] = frm_disp_bin
