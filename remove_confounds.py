@@ -63,8 +63,7 @@ import pandas as pd
 
 # import neuroimaging packages
 import nilearn.image as nl_img
-
-
+import nibabel as nib
 
 # Create parser for options
 parser = argparse.ArgumentParser(
@@ -177,6 +176,12 @@ for idx, this_confound in enumerate(args.confound_list):
     else:
         confounds_signals[:, idx] = frm_disp_bin
 
+# Check the numeric type of the input nii image
+print("Check datatype of input nii image:")
+temp_img = nib.load(args.niipath)
+# Print the datatype
+print(temp_img.header['datatype'].dtype)
+
 # Do the stuff
 out_img = nl_img.clean_img(args.niipath, 
                                     standardize=args.standardize, 
@@ -197,9 +202,9 @@ if args.add_mean_img_back:
 
     # Add the mean image back into the clean image frames
     *xyz, time_frames = out_img.shape
-    for this_frame in range(time_frames): 
-        out_img.get_data()[..., this_frame] += orig_mean_img.get_data() 
-
+    for this_frame in range(time_frames):
+        # Cache image data into memory and cast them into float32 
+        out_img.get_fdata(dtype=np.float32)[..., this_frame] += orig_mean_img.get_fdata(dtype=np.float32) 
 
 # Output filename
 output_filename, _ = args.niipath.split(".nii.gz") 
