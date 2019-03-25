@@ -141,10 +141,9 @@ parser.add_argument('--add_mean_img_back',
 args = parser.parse_args()
 
 # Check if we want high-pass filtering:
-
 if args.high_pass < 0:
     args.high_pass = None
-    # Disable adding the mean after cleaning the data. 
+    # If we do not filter, disable adding the mean after cleaning the data. 
     args.add_mean_img_back = False
 
 
@@ -177,13 +176,13 @@ for idx, this_confound in enumerate(args.confound_list):
         confounds_signals[:, idx] = frm_disp_bin
 
 # Check the numeric type of the input nii image
-print("Check datatype of input nii image:")
+print("Check datatype of input nii image [header]:")
 temp_img = nib.load(args.niipath)
 # Print the datatype
 print(temp_img.header['datatype'].dtype)
 
 # Do the stuff
-out_img = nl_img.clean_img(args.niipath, 
+temp_img = nl_img.clean_img(args.niipath, 
                                     standardize=args.standardize, 
                                     detrend=args.detrend, 
                                     confounds=confounds_signals,
@@ -194,21 +193,24 @@ out_img = nl_img.clean_img(args.niipath,
 
 
 
-
+this_dtype = np.float32
 if args.add_mean_img_back:
 
     # Compute the mean of the images (in the time dimension of 4th dimension)
     orig_mean_img = nl_img.mean_img(args.niipath) 
 
     # Add the mean image back into the clean image frames
-    *xyz, time_frames = out_img.shape
+    *xyz, time_frames = temp_img.shape
+    data = np.zeros(temp_img.shape, dtype=this_dtype)
     for this_frame in range(time_frames):
         # Cache image data into memory and cast them into float32 
-        out_img.get_fdata(dtype=np.float32)[..., this_frame] += orig_mean_img.get_fdata(dtype=np.float32) 
+        data[..., this_frame] = temp_img.get_fdata(dtype=this_dtype)[..., this_frame] + orig_mean_img.get_fdata(dtype=this_dtype) 
+
+out_img = nl_img.new_img_like(temp_img, data)
 
 # Output filename
 output_filename, _ = args.niipath.split(".nii.gz") 
-output_filename += '_confounds-removed.nii.gz'
+output_filename += '_confounds-removed_float64_temp.nii.gz'
 
 # Save the clean data in a separate file
 out_img.to_filename(output_filename)
