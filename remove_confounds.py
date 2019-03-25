@@ -210,7 +210,7 @@ out_img = nl_img.new_img_like(temp_img, data)
 
 # Output filename
 output_filename, _ = args.niipath.split(".nii.gz") 
-output_filename += '_confounds-removed_float64_temp.nii.gz'
+output_filename += '_confounds-removed.nii.gz'
 
 # Save the clean data in a separate file
 out_img.to_filename(output_filename)
