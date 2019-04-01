@@ -65,6 +65,12 @@ import pandas as pd
 import nilearn.image as nl_img
 import nibabel as nib
 
+# Create function to support mixed float and None type
+def none_or_float(arg_value):
+    if arg_value == 'None':
+        return None
+    return value
+
 # Create parser for options
 parser = argparse.ArgumentParser(
     description='Handle parameters to remove confounders from 4D frmi images.')
@@ -79,7 +85,6 @@ parser.add_argument('--tsvpath',
     type    = str, 
     default = None,
     help    ='The path to the tsv file with the confounders.')
-
 
 parser.add_argument('--maskpath', 
     type    = str, 
@@ -99,12 +104,12 @@ parser.add_argument('--confound_list',
     help    = 'A list with the name of the confounders to remove. Use the headers in the tsv file.')
 
 parser.add_argument('--low_pass',
-    type    = float, 
+    type    = none_or_float, 
     default = 0.10,
     help    ='The low-pass filter cutoff frequency in [Hz].')
 
 parser.add_argument('--high_pass',
-    type    = float, 
+    type    = none_or_float, 
     default = 0.01,
     help    ='The high-pass filter cutoff frequency in [Hz]. Set it to -1 if you dont want high-pass filtering.' )
 
@@ -137,14 +142,12 @@ parser.add_argument('--add_mean_img_back',
     default = True,
     help    = 'Use this flag if you want to add the mean/average original image to the cleaned data, post filtering and confound regression. Disable this flag if you do not use high-pass filtering.')
 
-
 args = parser.parse_args()
 
-# Check if we want high-pass filtering:
-if args.high_pass < 0:
-    args.high_pass = None
-    # If we do not filter, disable adding the mean after cleaning the data. 
-    args.add_mean_img_back = False
+#  Check if we want high-pass filtering:
+if args.high_pass is None:
+     # If we do not high-pass filter, disable adding the mean image back after cleaning the data. 
+     args.add_mean_img_back = False
 
 
 # This loads the tsv file in a DataFrame. 
