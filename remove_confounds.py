@@ -69,7 +69,7 @@ import nibabel as nib
 def none_or_float(arg_value):
     if arg_value == 'None':
         return None
-    return value
+    return arg_value
 
 # Create parser for options
 parser = argparse.ArgumentParser(
