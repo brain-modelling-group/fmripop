@@ -106,12 +106,12 @@ parser.add_argument('--confound_list',
 parser.add_argument('--low_pass',
     type    = none_or_float, 
     default = 0.10,
-    help    ='The low-pass filter cutoff frequency in [Hz].')
+    help    ='The low-pass filter cutoff frequency in [Hz]. Set it to None if you dont want low-pass filtering.')
 
 parser.add_argument('--high_pass',
     type    = none_or_float, 
     default = 0.01,
-    help    ='The high-pass filter cutoff frequency in [Hz]. Set it to -1 if you dont want high-pass filtering.' )
+    help    ='The high-pass filter cutoff frequency in [Hz]. Set it to None if you dont want high-pass filtering.' )
 
 parser.add_argument('--fmw_disp_th',
     dest    = 'fmw_disp_th', 
