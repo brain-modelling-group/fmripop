@@ -101,7 +101,7 @@ parser.add_argument('--maskpath',
 # These parameters have default values. 
 parser.add_argument('--nconf',
     type    = int,
-    default = 9,
+    default = 8,
     help    = 'The number of confounds to be removed.')
 
 parser.add_argument('--confound_list', 
@@ -163,6 +163,7 @@ if args.high_pass is None:
 if args.fmw_disp_th is not None:
     # Add it to the default confound list
     args.confound_list.append(fd_label)
+    args.nconf += 1
 
 # This loads the tsv file in a DataFrame.
 # The function  read_csv() infers the headers of each colum.
