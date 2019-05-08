@@ -107,7 +107,7 @@ parser.add_argument('--nconf',
 parser.add_argument('--confound_list', 
     type    = list,
     default = ['csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z'],
-    help    = 'A list with the name of the confounders to remove. Use the headers in the tsv file.')
+    help    = 'A list with the name of the confounds to remove. These are headers in the tsv file.')
 
 parser.add_argument('--low_pass',
     type    = none_or_float, 
