@@ -1,12 +1,22 @@
 #!/usr/bin/env python 
 
 """
-This function loads three files:
+INPUT: This function loads three files:
     1)  *_confounds.tsv 
     2)  *_preproc.nii.gz   --> This file can be the one produced by fmriprep or the one with the confounds removed
     3)  *_brainmask.nii.gz 
 
-The function uses the confound 'framewise_displacment' from the *.tsv file. 
+The function uses the confound 'framewise_displacment' from the *.tsv file to 
+determine which frames should be scrubbed.
+
+OUTPUT: This function outputs two main files.
+        1)  *_confounds_XXX.tsv or 
+        2)  *_preproc_XXX.nii.gz 
+
+where XXX is a three letter string 'scb' (scrubbed) and/or 'ipd' (interpolated).
+If the input files are scrubbed and interpolated then the output files will have
+'_scb_ipd' appended to the original filename. If only scrubbing is performed, then 
+'_scb' is appended to the original filename.
 
 
 For help type:
@@ -30,15 +40,16 @@ CODE REFERENCES:
 https://github.com/SIMEXP/niak/blob/master/commands/SI_processing/niak_fd2mask.m
 https://github.com/FCP-INDI/C-PAC/blob/7965125125319d895464f40db57b0eaba9c84da3/CPAC/generate_motion_statistics/generate_motion_statistics.py
 
-Nilearn: Typically, the FD is padded back (ie a value 0 is added at the back) and thresholded and 1 tr is removed before, 
-and 2 after (a total of 4 frames).
+Nilearn: Typically, the FD is padded back (ie a value 0 is added at the back) 
+and thresholded and 1 TR is removed before, and 2 after (a total of 4 frames).
 
-NOTE: however, fmriprep however prepends a nan to the FD vector, in which case one should remove the 
-frame that aligns with the fd 'frame' ==1 (eg, FA), the frame before(FA-1), the frame before that one (FA-2), and one frame after
+NOTE: however, fmriprep however prepends a nan to the FD vector, in which case 
+one should remove the frame that aligns with the fd 'frame' ==1 (eg, FA), the 
+frame before(FA-1), the frame before that one (FA-2), and one frame after
 (FA+1). So in that case it would be remove '2 frames before and 1 frame after' 
 
-# NOTE: TODO: the despike optimised method of scrubbing, removes data before removal of confounds and also interpolates the 
-# confound signals.
+# NOTE: TODO: the despike optimised method of scrubbing, removes data before 
+removal of confounds and also interpolates the confound signals.
 
 
 BIB REFERENCES:
@@ -120,7 +131,7 @@ df = pd.read_csv(args.tsvpath, sep='\t')
 
 # Remove row indices
 ra = df.to_records(index=False)
-
+# Get original nummber of frames
 tpts, _ = df.shape
 
 # Get framewise displacement vector
@@ -132,7 +143,7 @@ roll_step = -1
 fd_vec = np.roll(fd_vec, roll_step) 
 fd_vec[tpts-1] = 0
 
-# Find values of fd above the threshold
+# Find values of framwise displacement above the threshold
 above_threshold = 1.0
 below_threshold = 0.0
 fd_bin = np.where(fd_vec > args.fmw_disp_th, above_threshold, below_threshold)
@@ -140,7 +151,7 @@ fd_bin = np.where(fd_vec > args.fmw_disp_th, above_threshold, below_threshold)
 nb_frames = len(fd_bin)
 
 frame_idx_before_a = -1
-frame_idx_contaminated_a = 0 # Not really used, but for completeness. fd==1 at time a, indicates motion between frame a and frame b
+frame_idx_contaminated_a = 0 # Not really used, but for completeness. fd==1 at time 'a', indicates motion between frame 'a' and frame 'b''
 frame_idx_contaminated_b = 1
 frame_idx_after_b  =  2
 
@@ -150,7 +161,7 @@ fd_bin_pad = np.pad(fd_bin, (-frame_idx_before_a, frame_idx_after_b), 'constant'
 # Create the scrubbing mask 
 mask_scrub = (np.roll(fd_bin_pad, frame_idx_before_a) + fd_bin_pad + np.roll(fd_bin_pad, frame_idx_contaminated_b) + np.roll(fd_bin_pad, frame_idx_after_b))[-frame_idx_before_a:-frame_idx_after_b]
 
-# NOTE: Should check that for every fd detected we're removing the same number of frames
+# NOTE: Should check that for every FD above threshold detected we're removing the same number of frames
 to_delete = False
 # Create a boolean mask. A value of False indicates that the element/subarray should be deleted 
 mask_scrub = np.where(mask_scrub >= above_threshold, to_delete, not(to_delete))
