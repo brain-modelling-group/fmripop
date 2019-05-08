@@ -172,16 +172,15 @@ frame_idx_after_b  =  2
 fd_bin_pad = np.pad(fd_bin, (-frame_idx_before_a, frame_idx_after_b), 'constant', constant_values=(0, 0))
 
 # Create the scrubbing mask 
-mask_scrub = (np.roll(fd_bin_pad, frame_idx_before_a) + fd_bin_pad + np.roll(fd_bin_pad, frame_idx_contaminated_b) + np.roll(fd_bin_pad, frame_idx_after_b))[-frame_idx_before_a:-frame_idx_after_b]
+scrub_mask = (np.roll(fd_bin_pad, frame_idx_before_a) + fd_bin_pad + np.roll(fd_bin_pad, frame_idx_contaminated_b) + np.roll(fd_bin_pad, frame_idx_after_b))[-frame_idx_before_a:-frame_idx_after_b]
 
 # NOTE: Should check that for every FD above threshold detected we're removing the same number of frames
 to_delete = False
 # Create a boolean mask. A value of False indicates that the element/subarray should be deleted 
-mask_scrub = np.where(mask_scrub >= above_threshold, to_delete, not(to_delete))
+scrub_mask = np.where(scrub_mask >= above_threshold, to_delete, not(to_delete))
 
 # Percentage of frames to be eliminated 
-scrubbed_percentage = (1.0 - mask_scrub.sum() / nb_frames)
-
+scrubbed_percentage = (1.0 - scrub_mask.sum() / nb_frames)
 # Check the numeric type of the input nii image
 print("Percentage of scrubbed frames:")
 # Print the datatype
@@ -191,7 +190,7 @@ print(scrubbed_percentage*100)
 masked_data  = apply_mask(args.niipath, args.maskpath)
 tpts, voxels = masked_data.shape
 time_vec = np.arange(0, tpts) * args.tr
-time_vec_scrubbed = time_vec[mask_scrub]
+time_vec_scrubbed = time_vec[scrub_mask]
 # Get length in minutes
 original_length = (tpts * args.tr)/60.0
 scrubbed_length = (time_vec_scrubbed.shape * args.tr)/60.0
@@ -199,16 +198,23 @@ scrubbed_length = (time_vec_scrubbed.shape * args.tr)/60.0
 # original data
 visual_debug(time_vec, masked_data, fname='original')
 
-# Remove bad frames
-masked_data = masked_data[mask_scrub, :]
-# Create interpolation object
+def scrub_inputs(frmi_data, confound_data, scrub_mask):
+    """
+    fmri_data: ndarray
+    confound_data: pandas dataframe 
+    """
+
+    # Remove bad frames
+    masked_data = masked_data[scrub_mask, :]
+
 
 # Scrubbed data
-visual_debug(time_vec_scrubbed, masked_data,fname='scrubbed')
+visual_debug(time_vec_scrubbed, masked_data, fname='scrubbed')
 
 ############################# Interpolate data ###############################
 if do_interpolation:
     interpolation_axis = 0
+    # Create interpolation object
     interp_fun = interpolate.pchip(time_vec_scrubbed, masked_data, 
                                 axis=interpolation_axis, 
                                 extrapolate=True)
