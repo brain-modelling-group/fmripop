@@ -206,6 +206,7 @@ def scrub_inputs(frmi_data, confound_data, scrub_mask):
 
     # Remove bad frames
     masked_data = masked_data[scrub_mask, :]
+    confound_data.drop(scrub_mask, axis=0, inplace=True). 
 
 
 # Scrubbed data
