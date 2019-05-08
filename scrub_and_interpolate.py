@@ -129,8 +129,9 @@ parser.add_argument('--interpolate',
     default = True,
     help    = 'Use this flag to define if scrubbed data are interpolated or not. Default: True')
 
-def visual_debug(time_vec, data, voxel_to_plot=42):
+def visual_debug(time_vec, data, voxel_to_plot=42, fname='none'):
     plt.plot(time_vec, data[:, voxel_to_plot])
+    plt.savefig(fname)
     return
     
 args = parser.parse_args()
@@ -195,14 +196,14 @@ time_vec = np.arange(0, tpts) * args.tr
 time_vec_scrubbed = time_vec[mask_scrub]
 
 # original data
-visual_debug(time_vec, masked_data)
+visual_debug(time_vec, masked_data, fname='original')
 
 # Remove bad frames
 masked_data = masked_data[mask_scrub, :]
 # Create interpolation object
 
 # Scrubbed data
-visual_debug(time_vec_scrubbed, masked_data)
+visual_debug(time_vec_scrubbed, masked_data,fname='scrubbed')
 
 ############################# Interpolate data ###############################
 if do_interpolation:
@@ -217,9 +218,7 @@ if do_interpolation:
 # Reshape the data into a 4D arraythis_dtype = np.float32
 this_dtype = np.float32
 out_img = unmask(masked_data.astype(this_dtype), args.maskpath)
-visual_debug(time_vec, masked_data)
-
-plt.show()
+visual_debug(time_vec, masked_data, fname='interpolated')
 
 # Output filename
 output_filename, _ = args.niipath.split(".nii.gz") 
