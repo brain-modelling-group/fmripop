@@ -187,13 +187,14 @@ print("Percentage of scrubbed frames:")
 # Print the datatype
 print(scrubbed_percentage*100)
 
-
 # Returns a 2D array of shape timepoints x (voxels_x * voxels_y * voxels_z)
 masked_data  = apply_mask(args.niipath, args.maskpath)
-tpts, points = masked_data.shape
-
+tpts, voxels = masked_data.shape
 time_vec = np.arange(0, tpts) * args.tr
 time_vec_scrubbed = time_vec[mask_scrub]
+# Get length in minutes
+original_length = (tpts * args.tr)/60.0
+scrubbed_length = (time_vec_scrubbed.shape * args.tr)/60.0
 
 # original data
 visual_debug(time_vec, masked_data, fname='original')
@@ -230,9 +231,12 @@ out_img.to_filename(output_filename)
 
 # Save the input arguments in a text file with a timestamp
 input_par_dict = vars(args)
+input_par_dict['orginal_length_min'] = original_length
+input_par_dict['scrubbed_length_min'] = scrubbed_length
+input_par_dict['scrubbed_percentage'] = scrubbed_percentage*100
 
 timestamp = time.strftime("%Y-%m-%d-%H%M%S")
-filename  = timestamp + '_input_parameters_interpolation.txt'
+filename  = timestamp + '_io_parameters_scrub_interp.txt'
 
 with open(filename, 'w') as file:
      file.write(json.dumps(input_par_dict)) # use `json.loads` to do the reverse
