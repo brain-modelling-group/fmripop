@@ -54,10 +54,10 @@ removal of confounds and also interpolates the confound signals.
 
 BIB REFERENCES:
 [1] https://www.biorxiv.org/content/biorxiv/early/2017/11/05/156380.full.pdf
+    This reference recommends scrubbing BEFORE confound removal.
 
 The reference paper, on scrubbing from which all the formulas come, is:
 [2] http://www.sciencedirect.com/science/article/pii/S1053811911011815
-
 
 .. moduleauthor:: Paula Sanz-Leon <paula.sanz-leon@qimrberghofer.edu.au>
     
@@ -75,6 +75,7 @@ start_time = time.time()
 import numpy as np
 import pandas as pd
 from scipy import interpolate
+import matplotlib.pyplot as plt
 
 import nibabel as nib
 from nilearn.masking import apply_mask, unmask
@@ -122,6 +123,10 @@ parser.add_argument('--tr',
     default = 0.81,
     help    ='The repetition time (TR) in [seconds]. NOTE: Not used at the moment, but may be useful later')
 
+def visual_debug(time_vec, data, voxel_to_plot=42):
+    plt.plot(time_vec, data[:, voxel_to_plot])
+    return
+    
 args = parser.parse_args()
 
 # This loads the tsv file in a DataFrame. 
@@ -148,10 +153,10 @@ above_threshold = 1.0
 below_threshold = 0.0
 fd_bin = np.where(fd_vec > args.fmw_disp_th, above_threshold, below_threshold)
 
-nb_frames = len(fd_bin)
+nb_frames = len(fd_bin) # This should be == tpts-1
 
 frame_idx_before_a = -1
-frame_idx_contaminated_a = 0 # Not really used, but for completeness. fd==1 at time 'a', indicates motion between frame 'a' and frame 'b''
+frame_idx_contaminated_a = 0 # Not really used, but for completeness. fd_bin==1 at time 'a', indicates motion between frame 'a' and frame 'b''
 frame_idx_contaminated_b = 1
 frame_idx_after_b  =  2
 
@@ -174,7 +179,6 @@ print("Percentage of scrubbed frames:")
 # Print the datatype
 print(scrubbed_percentage*100)
 
-import matplotlib.pyplot as plt
 
 # Returns a 2D array of shape timepoints x (voxels_x * voxels_y * voxels_z)
 masked_data  = apply_mask(args.niipath, args.maskpath)
@@ -185,8 +189,7 @@ time_vec = np.arange(0, tpts) * args.tr
 time_vec_scrubbed = time_vec[mask_scrub]
 
 # original data
-plot_this_frame = 42
-plt.plot(time_vec, masked_data[:, plot_this_frame])
+visual_debug(time_vec, masked_data)
 
 # Remove bad frames
 masked_data = masked_data[mask_scrub, :]
@@ -195,7 +198,8 @@ masked_data = masked_data[mask_scrub, :]
 interp_fun = interpolate.pchip(time_vec_scrubbed, masked_data, axis=interpolation_axis, extrapolate=True)
 
 # Scrubbed data
-plt.plot(time_vec_scrubbed, masked_data[:, plot_this_frame])
+visual_debug(time_vec_scrubbed, masked_data)
+
 # Liberate some memory
 del masked_data
 # Interpolate data
@@ -204,7 +208,8 @@ masked_data_interp = interp_fun(time_vec)
 # Reshape the data into a 4D arraythis_dtype = np.float32
 this_dtype = np.float32
 out_img = unmask(masked_data_interp.astype(this_dtype), args.maskpath)
-plt.plot(time_vec, masked_data_interp[:, plot_this_frame])
+visual_debug(time_vec, masked_data_interp)
+
 plt.show()
 
 # Output filename
@@ -225,3 +230,4 @@ with open(filename, 'w') as file:
 
 
 print("--- %s seconds ---" % (time.time() - start_time))
+
