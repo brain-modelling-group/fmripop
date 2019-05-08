@@ -123,11 +123,18 @@ parser.add_argument('--tr',
     default = 0.81,
     help    ='The repetition time (TR) in [seconds]. NOTE: Not used at the moment, but may be useful later')
 
+parser.add_argument('--interpolate', 
+    dest    = 'do_interpolation', 
+    action  = 'store_true',
+    default = True,
+    help    = 'Use this flag to define if scrubbed data are interpolated or not. Default: True')
+
 def visual_debug(time_vec, data, voxel_to_plot=42):
     plt.plot(time_vec, data[:, voxel_to_plot])
     return
     
 args = parser.parse_args()
+output_tag = '_scb'
 
 # This loads the tsv file in a DataFrame. 
 # The function  read_csv() infers the headers of teach colum. 
@@ -184,7 +191,6 @@ print(scrubbed_percentage*100)
 masked_data  = apply_mask(args.niipath, args.maskpath)
 tpts, points = masked_data.shape
 
-interpolation_axis = 0
 time_vec = np.arange(0, tpts) * args.tr
 time_vec_scrubbed = time_vec[mask_scrub]
 
@@ -194,29 +200,33 @@ visual_debug(time_vec, masked_data)
 # Remove bad frames
 masked_data = masked_data[mask_scrub, :]
 # Create interpolation object
-#interp_fun = interpolate.interp1d(time_vec_scrubbed, masked_data, axis=interpolation_axis, kind='nearest')
-interp_fun = interpolate.pchip(time_vec_scrubbed, masked_data, axis=interpolation_axis, extrapolate=True)
 
 # Scrubbed data
 visual_debug(time_vec_scrubbed, masked_data)
 
-# Liberate some memory
-del masked_data
-# Interpolate data
-masked_data_interp = interp_fun(time_vec)
+############################# Interpolate data ###############################
+if do_interpolation:
+    interpolation_axis = 0
+    interp_fun = interpolate.pchip(time_vec_scrubbed, masked_data, 
+                                axis=interpolation_axis, 
+                                extrapolate=True)
+    del masked_data
+    masked_data = interp_fun(time_vec)
+    output_tag += '_ipd' 
 
 # Reshape the data into a 4D arraythis_dtype = np.float32
 this_dtype = np.float32
-out_img = unmask(masked_data_interp.astype(this_dtype), args.maskpath)
-visual_debug(time_vec, masked_data_interp)
+out_img = unmask(masked_data.astype(this_dtype), args.maskpath)
+visual_debug(time_vec, masked_data)
 
 plt.show()
 
 # Output filename
 output_filename, _ = args.niipath.split(".nii.gz") 
-output_filename += '_interp.nii.gz'
+output_filename += output_tag
+output_filename += '.nii.gz'
 
-# Save the clean data in a separate file
+# Save the scrubbed (and interpolated) data in a separate file
 out_img.to_filename(output_filename)
 
 # Save the input arguments in a text file with a timestamp
@@ -228,6 +238,4 @@ filename  = timestamp + '_input_parameters_interpolation.txt'
 with open(filename, 'w') as file:
      file.write(json.dumps(input_par_dict)) # use `json.loads` to do the reverse
 
-
 print("--- %s seconds ---" % (time.time() - start_time))
-
