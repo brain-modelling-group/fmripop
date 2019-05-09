@@ -153,13 +153,13 @@ parser.add_argument('--add_mean_img_back',
     help    = 'Use this flag if you want to add the mean/average original image to the cleaned data, post filtering and confound regression. Disable this flag if you do not use high-pass filtering.')
 
 parser.add_argument('--scrubbing', 
-    dest    = 'scrub_data', 
-    action  = 'store_true',
+    dest    = 'scrubbing', 
+    action  = 'store_true', 
     default = False,
     help    = 'Use this flag to scrub data (volume censoring). Default: False')
 
 parser.add_argument('--remove_volumes', 
-    dest    = 'scrub_data', 
+    dest    = 'remove_volumes', 
     action  = 'store_true',
     default = True,
     help    = 'This flag determines whether contamieated volumes should be removed from the output data.'
@@ -342,7 +342,7 @@ def fmripop_save_imgdata(args, out_img, output_tag=''):
     return
 
 
-def fmripop_save_params(args, params_dict)
+def fmripop_save_params(args, params_dict):
     # Save the input arguments in a text file with a timestamp
     timestamp = time.strftime("%Y-%m-%d-%H%M%S")
     filename = timestamp + '_fmripop_parameters.txt'
@@ -355,8 +355,9 @@ def fmripop_save_params(args, params_dict)
 if __name__ == '__main__':
 
     args = parser.parse_args()
-    out_img = fmripop_remove_confounds(args)
+    #out_img = fmripop_remove_confounds(args)
     params_dict = vars(args)
+    import pdb; pdb.set_trace()
 
     if args.scrubbing:
         scrub_mask = fmripop_calculate_scrub_mask(args)
@@ -367,7 +368,7 @@ if __name__ == '__main__':
         params_dict['scrubbed_percentage'] = scbper
 
         if args.remove_volumes:
-            out_img = fmripop_remove_volumes(out_img, scrub_mask, args)
+    #        out_img = fmripop_remove_volumes(out_img, scrub_mask, args)
             scrub_tag = '_scb'
         else:
             scrub_tag = ''
