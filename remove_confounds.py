@@ -150,100 +150,124 @@ parser.add_argument('--add_mean_img_back',
     default = True,
     help    = 'Use this flag if you want to add the mean/average original image to the cleaned data, post filtering and confound regression. Disable this flag if you do not use high-pass filtering.')
 
-args = parser.parse_args()
-# label of framewise displacmeent confound as found in the tsv file
-fd_label = 'framewise_displacement'
+parser.add_argument('--scrubbing', 
+    dest    = 'scrub_data', 
+    action  = 'store_true',
+    default = False,
+    help    = 'Use this flag to scrub data (volume censoring). Default: False')
 
-#  Check if we want high-pass filtering:
-if args.high_pass is None:
-    # If we do not high-pass filter, disable adding the mean image back after cleaning the data.
-    args.add_mean_img_back = False
 
-# Check if we want to regress framwise displacement
-if args.fmw_disp_th is not None:
-    # Add it to the default confound list
-    args.confound_list.append(fd_label)
-    args.nconf += 1
+def remove_confounds(args):
+    """
+    Removes confound signals
+    """
+    # label of framewise displacmeent confound as found in the tsv file
+    fd_label = 'framewise_displacement'
 
-# This loads the tsv file in a DataFrame.
-# The function  read_csv() infers the headers of each colum.
-# Row indexing starts at 0,
-df = pd.read_csv(args.tsvpath, sep='\t')
+    #  Check if we want high-pass filtering:
+    if args.high_pass is None:
+        # If we do not high-pass filter, disable adding the mean image back after cleaning the data.
+        args.add_mean_img_back = False
 
-# Remove row indices
-ra = df.to_records(index=False)
+    # Check if we want to regress framwise displacement
+    if args.fmw_disp_th is not None:
+        # Add it to the default confound list
+        args.confound_list.append(fd_label)
+        args.nconf += 1
 
-# Get shape of confound array
-tpts, nregressors = df.shape
+    # This loads the tsv file in a DataFrame.
+    # The function  read_csv() infers the headers of each colum.
+    # Row indexing starts at 0,
+    df = pd.read_csv(args.tsvpath, sep='\t')
 
-# Check if we are removing FramewiseDisplacement
-if fd_label in args.confound_list:
-    frm_disp = ra[fd_label]
+    # Remove row indices
+    ra = df.to_records(index=False)
 
-    # Binarizer timeseries of FramewiseDisplacement
-    frm_disp_bin = np.where(frm_disp > args.fmw_disp_th, 1.0, 0.0)
+    # Get shape of confound array
+    tpts, nregressors = df.shape
 
-# Allocate memory for the confound array
-confounds_signals = np.zeros((tpts, args.nconf))
+    # Check if we are removing FramewiseDisplacement
+    if fd_label in args.confound_list:
+        frm_disp = ra[fd_label]
 
-# Build the confound array
-for idx, this_confound in enumerate(args.confound_list):
-    if this_confound != fd_label:
-        confounds_signals[:, idx] = ra[this_confound]
+        # Binarizer timeseries of FramewiseDisplacement
+        frm_disp_bin = np.where(frm_disp > args.fmw_disp_th, 1.0, 0.0)
+
+    # Allocate memory for the confound array
+    confounds_signals = np.zeros((tpts, args.nconf))
+
+    # Build the confound array
+    for idx, this_confound in enumerate(args.confound_list):
+        if this_confound != fd_label:
+            confounds_signals[:, idx] = ra[this_confound]
+        else:
+            confounds_signals[:, idx] = frm_disp_bin
+
+    # Check the numeric type of the input nii image
+    print("Check datatype of input nii image [header]:")
+    temp_img = nib.load(args.niipath)
+    # Print the datatype
+    print(temp_img.header['datatype'].dtype)
+
+    # Do the stuff
+    temp_img = nl_img.clean_img(args.niipath, 
+                                standardize=args.standardize, 
+                                detrend=args.detrend, 
+                                confounds=confounds_signals,
+                                t_r=args.tr,
+                                high_pass=args.high_pass, 
+                                low_pass=args.low_pass,
+                                mask_img=args.maskpath)
+
+    this_dtype = np.float32
+    # Add the mean image back into the clean image frames
+    *xyz, time_frames = temp_img.shape
+    data = np.zeros(temp_img.shape, dtype=this_dtype)
+
+    if args.add_mean_img_back:
+        # Compute the mean of the images (in the time dimension of 4th dimension)
+        orig_mean_img = nl_img.mean_img(args.niipath)
+        for this_frame in range(time_frames):
+        # Cache image data into memory and cast them into float32 
+            data[..., this_frame] = temp_img.get_fdata(dtype=this_dtype)[..., this_frame] + orig_mean_img.get_fdata(dtype=this_dtype)
+        
     else:
-        confounds_signals[:, idx] = frm_disp_bin
+        for this_frame in range(time_frames):
+        # Cache image data into memory and cast them into float32 
+            data[..., this_frame] = temp_img.get_fdata(dtype=this_dtype)[..., this_frame]
 
-# Check the numeric type of the input nii image
-print("Check datatype of input nii image [header]:")
-temp_img = nib.load(args.niipath)
-# Print the datatype
-print(temp_img.header['datatype'].dtype)
+    out_img = nl_img.new_img_like(temp_img, data)
 
-# Do the stuff
-temp_img = nl_img.clean_img(args.niipath, 
-                            standardize=args.standardize, 
-                            detrend=args.detrend, 
-                            confounds=confounds_signals,
-                            t_r=args.tr,
-                            high_pass=args.high_pass, 
-                            low_pass=args.low_pass,
-                            mask_img=args.maskpath)
-
-this_dtype = np.float32
-# Add the mean image back into the clean image frames
-*xyz, time_frames = temp_img.shape
-data = np.zeros(temp_img.shape, dtype=this_dtype)
-
-if args.add_mean_img_back:
-    # Compute the mean of the images (in the time dimension of 4th dimension)
-    orig_mean_img = nl_img.mean_img(args.niipath)
-    for this_frame in range(time_frames):
-    # Cache image data into memory and cast them into float32 
-        data[..., this_frame] = temp_img.get_fdata(dtype=this_dtype)[..., this_frame] + orig_mean_img.get_fdata(dtype=this_dtype)
-    
-else:
-    for this_frame in range(time_frames):
-    # Cache image data into memory and cast them into float32 
-        data[..., this_frame] = temp_img.get_fdata(dtype=this_dtype)[..., this_frame]
-
-out_img = nl_img.new_img_like(temp_img, data)
-
-# Output filename
-output_filename, _ = args.niipath.split(".nii.gz")
-output_filename += '_confounds-removed.nii.gz'
-
-# Save the clean data in a separate file
-out_img.to_filename(output_filename)
-
-# Save the input arguments in a text file with a timestamp
-input_par_dict = vars(args)
+    return out_img
 
 
-timestamp = time.strftime("%Y-%m-%d-%H%M%S")
-filename = timestamp + '_input_parameters_confound_removal.txt'
+def save_fmripop_data(args, params_dict, out_img):
+    """
+    Do all the saving operations
+    """
 
-with open(filename, 'w') as file:
-    file.write(json.dumps(input_par_dict)) # use `json.loads` to do the reverse
+    # Output filename
+    output_filename, _ = args.niipath.split(".nii.gz")
+    output_filename += '_confounds-removed.nii.gz'
+
+    # Save the clean data in a separate file
+    out_img.to_filename(output_filename)
+
+    # Save the input arguments in a text file with a timestamp
+    timestamp = time.strftime("%Y-%m-%d-%H%M%S")
+    filename = timestamp + '_input_parameters_confound_removal.txt'
+
+    with open(filename, 'w') as file:
+        file.write(json.dumps(params_dict)) # use `json.loads` to do the reverse
+
+    return
 
 
 print("--- %s seconds ---" % (time.time() - start_time))
+
+
+if __name__ == '__main__':
+    args = parser.parse_args()
+    out_img = remove_confounds(args)
+    params_dict = vars(args)
+    save_fmripop_data(args, params_dict, out_img)
