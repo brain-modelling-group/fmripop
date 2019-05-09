@@ -203,7 +203,7 @@ def scrub_data(frmi_data, confound_data, scrub_mask):
     fmri_data: ndarray
     confound_data: pandas dataframe 
     """
-
++
     # Remove bad frames
     masked_data = masked_data[scrub_mask, :]
     # HERE - remove rows of confounds
@@ -214,21 +214,6 @@ def scrub_data(frmi_data, confound_data, scrub_mask):
 visual_debug(time_vec_scrubbed, masked_data, fname='scrubbed')
 
 ############################# Interpolate data ###############################
-def interpolate_data(frmi_data, confound_data, time_vec, time_vec_scrubbed):
-
-    interpolation_axis = 0
-    # Create interpolation object
-    interp_fun = interpolate.pchip(time_vec_scrubbed, masked_data, 
-                                axis=interpolation_axis, 
-                                extrapolate=True)
-    del masked_data
-    masked_data = interp_fun(time_vec)
-    # do something with the confounds
-
-
-if do_interpolation:
-    output_tag += '_ipd' 
-    interpolate_data()
 
 # Reshape the data into a 4D arraythis_dtype = np.float32
 this_dtype = np.float32
