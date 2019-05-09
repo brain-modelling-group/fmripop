@@ -285,7 +285,7 @@ def fmripop_calculate_scrub_mask(args):
     # Create a dummy fd_bin vector padded with zeros so we can create the scrub mask with circular shifts
     fd_bin_pad = np.pad(fd_bin, (-frame_idx_before_a, frame_idx_after_b), 'constant', constant_values=(0, 0))
 
-    # Create the scrubbing mask 
+    # Create the scrubbing mask. This mask can be used for other stats, such as longest sequence of contaminated volumes.
     scrub_mask = (np.roll(fd_bin_pad, frame_idx_before_a) + fd_bin_pad + np.roll(fd_bin_pad, frame_idx_contaminated_b) + np.roll(fd_bin_pad, frame_idx_after_b))[-frame_idx_before_a:-frame_idx_after_b]
     
     # NOTE: Should check that for every FD above threshold detected we're removing the same number of frames
