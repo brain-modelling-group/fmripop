@@ -156,6 +156,13 @@ parser.add_argument('--scrubbing',
     default = False,
     help    = 'Use this flag to scrub data (volume censoring). Default: False')
 
+parser.add_argument('--remove_volumes', 
+    dest    = 'scrub_data', 
+    action  = 'store_true',
+    default = True,
+    help    = 'This flag determines whether contamieated volumes should be removed from the output data.'
+              'Default: True.')
+
 
 def fmripop_remove_confounds(args):
     """
@@ -241,7 +248,22 @@ def fmripop_remove_confounds(args):
     return out_img
 
 
-def fmripop_save_data(args, params_dict, out_img):
+def fmripop_scrub_data():
+    output_tag = '_scb'
+
+
+
+def fmripop_calculate_scrub_mask():
+    """
+    Calculate the vector that indicates which volumes should be censored.
+    Do this always.  
+    """
+    pass
+
+def fmripop_remove_volumes():
+    pass
+
+def fmripop_save_imgdata(args, out_img):
     """
     Do all the saving operations
     """
@@ -252,7 +274,10 @@ def fmripop_save_data(args, params_dict, out_img):
 
     # Save the clean data in a separate file
     out_img.to_filename(output_filename)
+    return
 
+
+def fmripop_save_params(args, params_dict)
     # Save the input arguments in a text file with a timestamp
     timestamp = time.strftime("%Y-%m-%d-%H%M%S")
     filename = timestamp + '_input_parameters_confound_removal.txt'
@@ -262,12 +287,18 @@ def fmripop_save_data(args, params_dict, out_img):
 
     return
 
-
-print("--- %s seconds ---" % (time.time() - start_time))
-
-
 if __name__ == '__main__':
+
     args = parser.parse_args()
     out_img = fmripop_remove_confounds(args)
+    if args.scrubbing:
+        scrub_mask = fmripop_calculate_scrub_mask(args)
+        if args.remove_volumes:
+            out_img = fmripop_remove_volumes(out_img)
+
+
     params_dict = vars(args)
-    fmripop_save_data(args, params_dict, out_img)
+    fmripop_save_imgdata(args, out_img)
+    fmripop_save_params(args, params_dict)
+
+    print("--- %s seconds ---" % (time.time() - start_time))
