@@ -271,13 +271,12 @@ def fmripop_calculate_scrub_mask(args):
     fd_vec = np.roll(fd_vec, roll_step) 
     fd_vec[tpts-1] = 0
 
-    # Find values of framwise displacement above the threshold
     above_threshold = 1.0
     below_threshold = 0.0
+    # Find values of framwise displacement above the threshold
     fd_bin = np.where(fd_vec > args.fmw_disp_th, above_threshold, below_threshold)
 
-    nb_frames = len(fd_bin) # This should be == tpts-1
-
+    # Frame indices around the 'contaminated frame --> index 0'
     frame_idx_before_a = -1
     frame_idx_contaminated_a = 0 # Not really used, but for completeness. fd_bin==1 at time 'a', indicates motion between frame 'a' and frame 'b''
     frame_idx_contaminated_b = 1
