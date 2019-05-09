@@ -125,7 +125,7 @@ parser.add_argument('--fmw_disp_th',
     default = 0.4,
     help    ='Threshold to binarize the timeseries of FramewiseDisplacement confound.'
              'This value is typically between 0 and 1 [mm].'
-             'Set this flag to None if you do not wish to remove FramewiseDisplacement confound.')
+             'Set this flag to `None` if you do not wish to remove FramewiseDisplacement confound.')
 
 parser.add_argument('--tr',
     type    = float,
@@ -149,6 +149,13 @@ parser.add_argument('--add_mean_img_back',
     action  = 'store_true',
     default = True,
     help    = 'Use this flag if you want to add the mean/average original image to the cleaned data, post filtering and confound regression. Disable this flag if you do not use high-pass filtering.')
+
+parser.add_argument('--scrubbing', 
+    dest    = 'scrub_data', 
+    action  = 'store_true',
+    default = False,
+    help    = 'Use this flag to scrub data (volume censoring). Default: False')
+
 
 args = parser.parse_args()
 # label of framewise displacmeent confound as found in the tsv file
