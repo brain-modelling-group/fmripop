@@ -319,9 +319,8 @@ def frmipop_calculate_scrub_stats(scrub_mask, args):
 
 def fmripop_remove_volumes(imgs, scrub_mask, args, this_dtype=np.float32):
     """
-    This function removes the 'contaminated' volumes from the 
-    4D fmri image. The resulting sequence will be shorter than
-    the input along the 4th dimension/
+    Removes the 'contaminated' volumes from the 4D fmri image. 
+    The resulting sequence will be shorter than the input along the 4th dimension/
     """
     # Returns a 2D array of shape timepoints x (voxels_x * voxels_y * voxels_z)
     masked_data  = nl_mask.apply_mask(imgs, args.maskpath)
@@ -333,7 +332,7 @@ def fmripop_remove_volumes(imgs, scrub_mask, args, this_dtype=np.float32):
 
 def fmripop_save_imgdata(args, out_img, output_tag=''):
     """
-    Save the output 4D image 
+    Saves the output 4D image 
     """
 
     # Output filename
@@ -355,6 +354,7 @@ def fmripop_save_params(args, params_dict):
         file.write(json.dumps(params_dict)) # use `json.loads` to do the reverse
 
     return
+
 
 if __name__ == '__main__':
 
