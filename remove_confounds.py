@@ -157,7 +157,7 @@ parser.add_argument('--scrubbing',
     help    = 'Use this flag to scrub data (volume censoring). Default: False')
 
 
-def remove_confounds(args):
+def fmripop_remove_confounds(args):
     """
     Removes confound signals
     """
@@ -241,7 +241,7 @@ def remove_confounds(args):
     return out_img
 
 
-def save_fmripop_data(args, params_dict, out_img):
+def fmripop_save_data(args, params_dict, out_img):
     """
     Do all the saving operations
     """
@@ -268,6 +268,6 @@ print("--- %s seconds ---" % (time.time() - start_time))
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    out_img = remove_confounds(args)
+    out_img = fmripop_remove_confounds(args)
     params_dict = vars(args)
-    save_fmripop_data(args, params_dict, out_img)
+    fmripop_save_data(args, params_dict, out_img)
