@@ -250,7 +250,7 @@ def fmripop_remove_confounds(args):
 
 def fmripop_scrub_data():
     output_tag = '_scb'
-
+    pass
 
 
 def fmripop_calculate_scrub_mask():
@@ -262,6 +262,7 @@ def fmripop_calculate_scrub_mask():
 
 def fmripop_remove_volumes():
     pass
+
 
 def fmripop_save_imgdata(args, out_img):
     """
