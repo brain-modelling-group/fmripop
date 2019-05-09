@@ -260,6 +260,21 @@ def fmripop_calculate_scrub_mask():
     """
     pass
 
+def frmipop_calculate_scrub_stats(scrub_mask, args):
+
+    # In the boolean scub_mask False indicates that the element/subarray should be deleted 
+
+    # Percentage of frames to be eliminated 
+    scrubbed_percentage = ((1.0 - scrub_mask.sum() / scrub_mask.shape))*100
+    time_vec = np.arange(0, scrub_mask.shape) * args.tr
+    time_vec_scrubbed = time_vec[scrub_mask]
+   # Get length in minutes
+    original_length = (tpts * args.tr)/60.0
+    scrubbed_length = (time_vec_scrubbed.shape * args.tr)/60.0
+
+    return scrubbed_percentage, scrubbed_length, original_length
+
+
 def fmripop_remove_volumes():
     pass
 
@@ -292,13 +307,19 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     out_img = fmripop_remove_confounds(args)
+    params_dict = vars(args)
+
     if args.scrubbing:
         scrub_mask = fmripop_calculate_scrub_mask(args)
+        scbper, scbl, ol = frmipop_calculate_scrub_stats(scrub_mask, args)
+        params_dict['scrub_mask'] = scrub_mask
+        params_dict['original_length_min'] = ol
+        params_dict['scrubbed_length_min'] = scbl
+        params_dict['scrubbed_percentage'] = scbper
+
         if args.remove_volumes:
             out_img = fmripop_remove_volumes(out_img)
 
-
-    params_dict = vars(args)
     fmripop_save_imgdata(args, out_img)
     fmripop_save_params(args, params_dict)
 
