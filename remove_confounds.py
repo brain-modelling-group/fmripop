@@ -329,7 +329,7 @@ def fmripop_remove_volumes(imgs, scrub_mask, args, this_dtype=np.float32):
 
 def fmripop_save_imgdata(args, out_img, output_tag=''):
     """
-    Do all the saving operations
+    Save the output 4D image 
     """
 
     # Output filename
@@ -361,7 +361,7 @@ if __name__ == '__main__':
     if args.scrubbing:
         scrub_mask = fmripop_calculate_scrub_mask(args)
         scbper, scbl, ol = frmipop_calculate_scrub_stats(scrub_mask, args)
-        params_dict['scrub_mask'] = scrub_mask
+        params_dict['scrub_mask'] = scrub_mask # True: uncontaminated volume. False: contaminated volume
         params_dict['original_length_min'] = ol
         params_dict['scrubbed_length_min'] = scbl
         params_dict['scrubbed_percentage'] = scbper
