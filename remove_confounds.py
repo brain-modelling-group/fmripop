@@ -161,7 +161,7 @@ parser.add_argument('--scrubbing',
 parser.add_argument('--remove_volumes', 
     dest    = 'remove_volumes', 
     action  = 'store_true',
-    default = True,
+    default = False,
     help    = 'This flag determines whether contamieated volumes should be removed from the output data.'
               'Default: True.')
 
@@ -288,6 +288,11 @@ def fmripop_calculate_scrub_mask(args):
 
     # Create the scrubbing mask 
     scrub_mask = (np.roll(fd_bin_pad, frame_idx_before_a) + fd_bin_pad + np.roll(fd_bin_pad, frame_idx_contaminated_b) + np.roll(fd_bin_pad, frame_idx_after_b))[-frame_idx_before_a:-frame_idx_after_b]
+    
+    # NOTE: Should check that for every FD above threshold detected we're removing the same number of frames
+    to_delete = False
+    # Create a boolean mask. A value of False indicates that the element/subarray should be deleted 
+    scrub_mask = np.where(scrub_mask >= above_threshold, to_delete, not(to_delete))
     return scrub_mask
 
 
@@ -304,11 +309,11 @@ def frmipop_calculate_scrub_stats(scrub_mask, args):
 
     # Percentage of frames to be eliminated 
     scrubbed_percentage = ((1.0 - scrub_mask.sum() / scrub_mask.shape))*100
-    time_vec = np.arange(0, scrub_mask.shape) * args.tr
-    time_vec_scrubbed = time_vec[scrub_mask]
+    tpts, *_  =  scrub_mask.shape
+    stpts, *_ =  (~scrub_mask).sum()
    # Get length in minutes
-    original_length = (tpts * args.tr)/60.0
-    scrubbed_length = (time_vec_scrubbed.shape * args.tr)/60.0
+    original_length = (tpts* args.tr)/60.0
+    scrubbed_length = ((tpts-stpts) * args.tr)/60.0
 
     return scrubbed_percentage, scrubbed_length, original_length
 
