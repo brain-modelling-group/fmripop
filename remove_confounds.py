@@ -253,7 +253,6 @@ def fmripop_remove_confounds(args):
 def fmripop_calculate_scrub_mask(args):
     """
     Calculate the vector that indicates which volumes should be scrubbed/censored.
-    Do this always.  
     """
 
     df = pd.read_csv(args.tsvpath, sep='\t')
@@ -328,15 +327,16 @@ def fmripop_remove_volumes(imgs, scrub_mask, args, this_dtype=np.float32):
     return out_img
 
 
-def fmripop_save_imgdata(args, out_img):
+def fmripop_save_imgdata(args, out_img, output_tag=''):
     """
     Do all the saving operations
     """
 
     # Output filename
     output_filename, _ = args.niipath.split(".nii.gz")
-    output_filename += '_confounds-removed.nii.gz'
-
+    # NOTE: this line is not general enough, but it'll do for now
+    output_tag = '_confounds-removed' + output_tag +  '.nii.gz'
+    output_filename += output_tag 
     # Save the clean data in a separate file
     out_img.to_filename(output_filename)
     return
@@ -345,7 +345,7 @@ def fmripop_save_imgdata(args, out_img):
 def fmripop_save_params(args, params_dict)
     # Save the input arguments in a text file with a timestamp
     timestamp = time.strftime("%Y-%m-%d-%H%M%S")
-    filename = timestamp + '_input_parameters_confound_removal.txt'
+    filename = timestamp + '_fmripop_parameters.txt'
 
     with open(filename, 'w') as file:
         file.write(json.dumps(params_dict)) # use `json.loads` to do the reverse
@@ -368,8 +368,12 @@ if __name__ == '__main__':
 
         if args.remove_volumes:
             out_img = fmripop_remove_volumes(out_img, scrub_mask, args)
+            scrub_tag = '_scb'
+        else:
+            scrub_tag = ''
 
-    fmripop_save_imgdata(args, out_img)
+
+    fmripop_save_imgdata(args, out_img, output_tag=scrub_tag)
     fmripop_save_params(args, params_dict)
 
     print("--- %s seconds ---" % (time.time() - start_time))
