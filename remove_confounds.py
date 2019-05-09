@@ -67,6 +67,8 @@ import pandas as pd
 
 # import neuroimaging packages
 import nilearn.image as nl_img
+import nilearn.masking as nl_mask 
+
 import nibabel as nib
 
 # Start tracking execution time
@@ -248,20 +250,57 @@ def fmripop_remove_confounds(args):
     return out_img
 
 
-def fmripop_scrub_data():
-    output_tag = '_scb'
-    pass
-
-
-def fmripop_calculate_scrub_mask():
+def fmripop_calculate_scrub_mask(args):
     """
-    Calculate the vector that indicates which volumes should be censored.
+    Calculate the vector that indicates which volumes should be scrubbed/censored.
     Do this always.  
     """
-    pass
+
+    df = pd.read_csv(args.tsvpath, sep='\t')
+
+    # Remove row indices
+    ra = df.to_records(index=False)
+    # Get original nummber of frames
+    tpts, _ = df.shape
+
+    # Get framewise displacement vector
+    fd_vec = ra['framewise_displacement']
+
+    # fmriprep *prepends* nan in the FD vector, other approaches *append* a 0 at the end of the vector
+    # here we shift the fd to match 'typical' approaches in the literature
+    roll_step = -1
+    fd_vec = np.roll(fd_vec, roll_step) 
+    fd_vec[tpts-1] = 0
+
+    # Find values of framwise displacement above the threshold
+    above_threshold = 1.0
+    below_threshold = 0.0
+    fd_bin = np.where(fd_vec > args.fmw_disp_th, above_threshold, below_threshold)
+
+    nb_frames = len(fd_bin) # This should be == tpts-1
+
+    frame_idx_before_a = -1
+    frame_idx_contaminated_a = 0 # Not really used, but for completeness. fd_bin==1 at time 'a', indicates motion between frame 'a' and frame 'b''
+    frame_idx_contaminated_b = 1
+    frame_idx_after_b  =  2
+
+    # Create a dummy fd_bin vector padded with zeros so we can create the scrub mask with circular shifts
+    fd_bin_pad = np.pad(fd_bin, (-frame_idx_before_a, frame_idx_after_b), 'constant', constant_values=(0, 0))
+
+    # Create the scrubbing mask 
+    scrub_mask = (np.roll(fd_bin_pad, frame_idx_before_a) + fd_bin_pad + np.roll(fd_bin_pad, frame_idx_contaminated_b) + np.roll(fd_bin_pad, frame_idx_after_b))[-frame_idx_before_a:-frame_idx_after_b]
+    return scrub_mask
+
 
 def frmipop_calculate_scrub_stats(scrub_mask, args):
+    """
+    This function calculates basic duration stats.
+    Calculates the percentage of scrubbed volumes. 
+    Calculates the length [in minutes of]:
+                                         + the original data and 
+                                         + the scrubbed data.
 
+    """
     # In the boolean scub_mask False indicates that the element/subarray should be deleted 
 
     # Percentage of frames to be eliminated 
@@ -275,8 +314,18 @@ def frmipop_calculate_scrub_stats(scrub_mask, args):
     return scrubbed_percentage, scrubbed_length, original_length
 
 
-def fmripop_remove_volumes():
-    pass
+def fmripop_remove_volumes(imgs, scrub_mask, args, this_dtype=np.float32):
+    """
+    This function removes the 'contaminated' volumes from the 
+    4D fmri image. The resulting sequence will be shorter than
+    the input along the 4th dimension/
+    """
+    # Returns a 2D array of shape timepoints x (voxels_x * voxels_y * voxels_z)
+    masked_data  = nl_mask.apply_mask(imgs, args.maskpath)
+    # In the boolean scub_mask False indicates that the element/subarray should be deleted 
+    masked_data = masked_data[scrub_mask, :]
+    out_img = nl_mask.unmask(masked_data.astype(this_dtype), args.maskpath)
+    return out_img
 
 
 def fmripop_save_imgdata(args, out_img):
@@ -318,7 +367,7 @@ if __name__ == '__main__':
         params_dict['scrubbed_percentage'] = scbper
 
         if args.remove_volumes:
-            out_img = fmripop_remove_volumes(out_img)
+            out_img = fmripop_remove_volumes(out_img, scrub_mask, args)
 
     fmripop_save_imgdata(args, out_img)
     fmripop_save_params(args, params_dict)
