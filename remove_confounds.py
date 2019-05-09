@@ -150,13 +150,6 @@ parser.add_argument('--add_mean_img_back',
     default = True,
     help    = 'Use this flag if you want to add the mean/average original image to the cleaned data, post filtering and confound regression. Disable this flag if you do not use high-pass filtering.')
 
-parser.add_argument('--scrubbing', 
-    dest    = 'scrub_data', 
-    action  = 'store_true',
-    default = False,
-    help    = 'Use this flag to scrub data (volume censoring). Default: False')
-
-
 args = parser.parse_args()
 # label of framewise displacmeent confound as found in the tsv file
 fd_label = 'framewise_displacement'
