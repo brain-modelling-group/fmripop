@@ -347,11 +347,11 @@ def fmripop_save_imgdata(args, out_img, output_tag=''):
 
 def fmripop_save_params(args, params_dict):
     # Save the input arguments in a text file with a timestamp
-    timestamp = time.strftime("%Y-%m-%d-%H%M%S")
-    filename = timestamp + '_fmripop_parameters.txt'
+    #timestamp = time.strftime("%Y-%m-%d-%H%M%S")
+    filename = 'fmripop_parameters.txt'
 
     with open(filename, 'w') as file:
-        file.write(json.dumps(params_dict)) # use `json.loads` to do the reverse
+        file.write(json.dumps(params_dict, indent=4, sort_keys=True)) # use `json.loads` to do the reverse
 
     return
 
@@ -375,7 +375,7 @@ if __name__ == '__main__':
         else:
             scrub_tag = ''
 
-    fmripop_save_imgdata(args, out_img, output_tag=scrub_tag)
+    #fmripop_save_imgdata(args, out_img, output_tag=scrub_tag)
     fmripop_save_params(args, params_dict)
 
     print("--- %s seconds ---" % (time.time() - start_time))
