@@ -1,27 +1,30 @@
 #!/usr/bin/env python 
 
 """
-This function loads three files:
+This modules uses three files:
     1)  *_confounds.tsv 
     2)  *_preproc.nii.gz
     3)  *_brainmask.nii.gz
 
-It then passes the confounds timeseries and the 4D
-data to a `nilearn` function which removes/regresses out
-the confounds specified by the user and returns the cleaned 4D data. 
+
+The confounds signals are regressed from the original fmri data. 
+Optionally, the user can ask for the scrubbing mask to be calculated 
+AND the contaminated volumes to be removed from the output fmri data. 
 
 Find the latest version of this code at:
-https://gist.github.com/pausz/70203386a608fcf82e5c6051054d97e1
+https://github.com/pausz/fmripop/blob/master/remove_confounds.py
 
 For help type:
     python remove_confounds.py -h
 
 
 Usage:
+CASE 0: Uses Default values of parameters
     python remove_confounds.py --niipath /path/to/file/file_preproc.nii.gz
                                --maskpath /path/to/file/file_brainmask.nii.gz
                                --tsvpath /path/to/file/file_confounds.tsv
 
+CASE 1: Does not regress `framwise displacement` -- used for task-fmri data
     python remove_confounds.py --niipath /path/to/file/file_preproc.nii.gz
                                --maskpath /path/to/file/file_brainmask.nii.gz
                                --tsvpath /path/to/file/file_confounds.tsv'
@@ -29,6 +32,19 @@ Usage:
                                --high-pass None 
                                --fmw_disp_th None
 
+CASE 2: Calculates scrubbing mask AND removes contaminated volumes
+    python remove_confounds.py --niipath /path/to/file/file_preproc.nii.gz
+                               --maskpath /path/to/file/file_brainmask.nii.gz
+                               --tsvpath /path/to/file/file_confounds.tsv'
+                               --scrubbing
+                               --remove_volumes
+
+CASE 3: Calculates scrubbing mask, but DOES NOT remove contaminated volumes
+    python remove_confounds.py --niipath /path/to/file/file_preproc.nii.gz
+                               --maskpath /path/to/file/file_brainmask.nii.gz
+                               --tsvpath /path/to/file/file_confounds.tsv'
+                               --low-pass None 
+                               --scrubbing
 
 TESTED WITH:
 # Anaconda 5.5.0
@@ -51,6 +67,12 @@ A General Linear Approach”. Human Brain Mapping 2, no 4 (1994): 189-210.
 
 [2] Lindquist, M., Geuter, S., Wager, T., & Caffo, B. (2018).
 Modular preprocessing pipelines can reintroduce artifacts into fMRI data. bioRxiv, 407676.
+
+[3] https://www.biorxiv.org/content/biorxiv/early/2017/11/05/156380.full.pdf
+    This reference recommends scrubbing BEFORE confound removal.
+
+The reference paper, on scrubbing from which all the formulas come, is:
+[4] http://www.sciencedirect.com/science/article/pii/S1053811911011815
 
 .. moduleauthor:: Paula Sanz-Leon <paula.sanz-leon@qimrberghofer.edu.au>
     
