@@ -359,7 +359,7 @@ def fmripop_save_params(args, params_dict):
 if __name__ == '__main__':
 
     args = parser.parse_args()
-    #out_img = fmripop_remove_confounds(args)
+    out_img = fmripop_remove_confounds(args)
     params_dict = vars(args)
 
     if args.scrubbing:
@@ -375,7 +375,7 @@ if __name__ == '__main__':
         else:
             scrub_tag = ''
 
-    #fmripop_save_imgdata(args, out_img, output_tag=scrub_tag)
+    fmripop_save_imgdata(args, out_img, output_tag=scrub_tag)
     fmripop_save_params(args, params_dict)
 
     print("--- %s seconds ---" % (time.time() - start_time))
