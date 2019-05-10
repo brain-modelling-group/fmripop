@@ -392,7 +392,7 @@ if __name__ == '__main__':
         params_dict['scrubbed_length_min'] = scbl
         params_dict['scrubbed_percentage'] = scbper
         if args.remove_volumes:
-    #        out_img = fmripop_remove_volumes(out_img, scrub_mask, args)
+            out_img = fmripop_remove_volumes(out_img, scrub_mask, args)
             scrub_tag = '_scb'
         else:
             scrub_tag = ''
