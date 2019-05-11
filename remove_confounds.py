@@ -90,7 +90,6 @@ import pandas as pd
 # import neuroimaging packages
 import nilearn.image as nl_img
 import nilearn.masking as nl_mask 
-
 import nibabel as nib
 
 # Start tracking execution time
@@ -147,9 +146,9 @@ parser.add_argument('--fmw_disp_th',
     dest    = 'fmw_disp_th', 
     type    = none_or_float, 
     default = 0.4,
-    help    ='Threshold to binarize the timeseries of FramewiseDisplacement confound.'
-             'This value is typically between 0 and 1 [mm].'
-             'Set this flag to `None` if you do not wish to remove FramewiseDisplacement confound.')
+    help    ='''Threshold to binarize the timeseries of FramewiseDisplacement confound.
+                This value is typically between 0 and 1 [mm].
+                Set this flag to `None` if you do not wish to remove FramewiseDisplacement confound.''')
 
 parser.add_argument('--tr',
     type    = float,
@@ -302,7 +301,7 @@ def fmripop_calculate_scrub_mask(args):
     frame_idx_before_a = -1
     frame_idx_contaminated_a = 0 # Not really used, but for completeness. fd_bin==1 at time 'a', indicates motion between frame 'a' and frame 'b''
     frame_idx_contaminated_b = 1
-    frame_idx_after_b  =  2
+    frame_idx_after_b = 2
 
     # Create a dummy fd_bin vector padded with zeros so we can create the scrub mask with circular shifts
     fd_bin_pad = np.pad(fd_bin, (-frame_idx_before_a, frame_idx_after_b), 'constant', constant_values=(0, 0))
