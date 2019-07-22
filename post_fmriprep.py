@@ -380,7 +380,7 @@ def fmripop_smooth_data(imgs, fwhm):
     args.smoothing corresponds to the parameter 'fwhm'.
 
     """
-    out_img = nl_image.smooth_img(imgs, fwhm)
+    out_img = nl_img.smooth_img(imgs, fwhm)
     return out_img
 
 
