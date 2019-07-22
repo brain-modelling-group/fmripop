@@ -216,9 +216,9 @@ def fmripop_remove_confounds(args):
     fd_label = 'framewise_displacement'
 
     #  Check if we want high-pass filtering:
-    if args.high_pass is None:
+    #if args.high_pass is None:
         # If we do not high-pass filter, disable adding the mean image back after cleaning the data.
-        args.add_mean_img_back = False
+    #    args.add_mean_img_back = False
 
     # Check if we want to regress framwise displacement
     if args.fmw_disp_th is not None:
