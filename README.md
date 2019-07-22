@@ -26,47 +26,47 @@ Exemplary use cases are detailed below
 ##### CASE 0: Use all default values of parameters
 
 ```
-    python remove_confounds.py --niipath /path/to/file/file_preproc.nii.gz
-                               --maskpath /path/to/file/file_brainmask.nii.gz
-                               --tsvpath /path/to/file/file_confounds.tsv
+    python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
+                            --maskpath /path/to/file/file_brainmask.nii.gz
+                            --tsvpath /path/to/file/file_confounds.tsv
 ```
 
 ##### CASE 1: Does not regress `framwise displacement` -- used for task-fmri data
 
 ```
-    python remove_confounds.py --niipath /path/to/file/file_preproc.nii.gz
-                               --maskpath /path/to/file/file_brainmask.nii.gz
-                               --tsvpath /path/to/file/file_confounds.tsv
-                               --low-pass None 
-                               --high-pass None 
-                               --fmw_disp_th None
+    python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
+                            --maskpath /path/to/file/file_brainmask.nii.gz
+                            --tsvpath /path/to/file/file_confounds.tsv
+                            --low-pass None 
+                            --high-pass None 
+                            --fmw_disp_th None
 ```
 
 ##### CASE 2: Calculates scrubbing mask AND removes contaminated volumes
 
 ```
-    python remove_confounds.py --niipath /path/to/file/file_preproc.nii.gz
-                               --maskpath /path/to/file/file_brainmask.nii.gz
-                               --tsvpath /path/to/file/file_confounds.tsv
-                               --scrubbing
-                               --remove_volumes
+    python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
+                            --maskpath /path/to/file/file_brainmask.nii.gz
+                            --tsvpath /path/to/file/file_confounds.tsv
+                            --scrubbing
+                            --remove_volumes
 ```
 
 ##### CASE 3: Calculates scrubbing mask, but DOES NOT remove contaminated volumes
 
 ```
-    python remove_confounds.py --niipath /path/to/file/file_preproc.nii.gz
-                               --maskpath /path/to/file/file_brainmask.nii.gz
-                               --tsvpath /path/to/file/file_confounds.tsv
-                               --low-pass None 
-                               --scrubbing
+    python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
+                            --maskpath /path/to/file/file_brainmask.nii.gz
+                            --tsvpath /path/to/file/file_confounds.tsv
+                            --low-pass None 
+                            --scrubbing
 ```
 
 ##### CASE 4: Performs smoothing with a different width along each axis 
 
 ```
-    python remove_confounds.py --niipath /path/to/file/file_preproc.nii.gz
-                               --maskpath /path/to/file/file_brainmask.nii.gz
-                               --tsvpath /path/to/file/file_confounds.tsv
-                               --fwhm 1.5 2.5 1.0
+    python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
+                            --maskpath /path/to/file/file_brainmask.nii.gz
+                            --tsvpath /path/to/file/file_confounds.tsv
+                            --fwhm 1.5 2.5 1.0
 ```
