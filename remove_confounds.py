@@ -46,12 +46,12 @@ CASE 3: Calculates scrubbing mask, but DOES NOT remove contaminated volumes
                                --low-pass None 
                                --scrubbing
 
-CASE 4: Performs smoothing with a different width  Calculates scrubbing mask, but DOES NOT remove contaminated volumes
+CASE 4: Performs smoothing with a different width along each axis 
     python remove_confounds.py --niipath /path/to/file/file_preproc.nii.gz
                                --maskpath /path/to/file/file_brainmask.nii.gz
                                --tsvpath /path/to/file/file_confounds.tsv'
-                               --low-pass None 
-                               --scrubbing
+                               --fwhm 1.5 2.5 1.0
+
 TESTED WITH:
 # Anaconda 5.5.0
 # Python 3.7.0
@@ -202,7 +202,7 @@ parser.add_argument('--fwhm',
    action = StoreNDArray, 
    type = float,
    nargs='+',
-   default = np.array([1.0]),
+   default = np.array([8.0]),
    help = ''' Smoothing strength, expressed as as Full-Width at Half Maximum (fwhm), in millimeters. 
               Can be: a single number --fwhm 1 in which case the fwhm is identical on all three directions x, y, z. 
                                       --fwhm 0, no smoothing is peformed. 
@@ -427,11 +427,12 @@ if __name__ == '__main__':
         if args.remove_volumes:
             out_img = fmripop_remove_volumes(out_img, scrub_mask, args)
             scrub_tag = '_scb'
-        else:
-            scrub_tag = ''
+    else:
+        scrub_tag = ''
 
-    if not args.fwhm.sum(): # If fwhm is not zero, perform smoothing
+    if args.fwhm.sum(): # If fwhm is not zero, performs smoothing
         out_img = fmripop_smooth_data(out_img, args.fwhm)
+    params_dict['fwhm'] = args.fwhm.tolist() 
 
     fmripop_save_imgdata(args, out_img, output_tag=scrub_tag)
     fmripop_save_params(args, params_dict)
