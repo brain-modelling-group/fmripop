@@ -208,6 +208,18 @@ parser.add_argument('--fwhm',
                       -> an array with 3 elements, --fwhm  1 1.5 2.5, giving the fwhm along each axis. ''') 
 
 
+def fmripop_smooth_data(imgs, fwhm):
+    """
+    A wrapper of: 
+    https://nilearn.github.io/modules/generated/nilearn.image.smooth_img.html#nilearn.image.smooth_img
+    Smooth images by applying a Gaussian filter.
+    args.smoothing corresponds to the parameter 'fwhm'.
+
+    """
+    out_img = nl_img.smooth_img(imgs, fwhm)
+    return out_img
+
+
 def fmripop_remove_confounds(args):
     """
     Removes confound signals
@@ -369,18 +381,6 @@ def fmripop_remove_volumes(imgs, scrub_mask, args, this_dtype=np.float32):
     # In the boolean scub_mask False indicates that the element/subarray should be deleted 
     masked_data = masked_data[scrub_mask, :]
     out_img = nl_mask.unmask(masked_data.astype(this_dtype), args.maskpath)
-    return out_img
-
-
-def fmripop_smooth_data(imgs, fwhm):
-    """
-    A wrapper of: 
-    https://nilearn.github.io/modules/generated/nilearn.image.smooth_img.html#nilearn.image.smooth_img
-    Smooth images by applying a Gaussian filter.
-    args.smoothing corresponds to the parameter 'fwhm'.
-
-    """
-    out_img = nl_img.smooth_img(imgs, fwhm)
     return out_img
 
 
