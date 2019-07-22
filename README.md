@@ -1,5 +1,5 @@
 # fmripop
-A collection of python scripts and functions to (po)st(p)rocess fmridata, preprocessed with fmriprep. 
+A collection of python scripts and functions to (po)st(p)rocess fmridata, preprocessed with [fmriprep](https://github.com/poldracklab/fmriprep). 
 The main file is `post_fmriprep.py`, which enables users to:
 
 + remove fmri confounds
@@ -7,7 +7,7 @@ The main file is `post_fmriprep.py`, which enables users to:
 + scrub data
 + smooth data
 
-Many of the function in this file are wrappers of nilearn's functions.
+Many of the function in this file are wrappers of [nilearn's](https://nilearn.github.io/) functions.
 
 
 To learn more about the input parameters and their default values type
