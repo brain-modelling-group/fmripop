@@ -292,7 +292,7 @@ def fmripop_remove_confounds(args):
         # Compute the mean of the images (in the time dimension of 4th dimension)
         orig_mean_img = nl_img.mean_img(args.niipath)
         # Smooth mean image
-        orig_mean_img = fmripop_smooth_data(orig_mean_img, args.fwhm)
+        orig_mean_img = fmripop_smooth_data(orig_mean_img, args.fwhm[0]) # NOTE: This here is a hack because this version of nilearn does not really support a ndarray for fwhm
         for this_frame in range(time_frames):
         # Cache image data into memory and cast them into float32 
             data[..., this_frame] = temp_img.get_fdata(dtype=this_dtype)[..., this_frame] + orig_mean_img.get_fdata(dtype=this_dtype)
@@ -433,7 +433,7 @@ if __name__ == '__main__':
         scrub_tag = ''
 
     if args.fwhm.sum(): # If fwhm is not zero, performs smoothing
-        out_img = fmripop_smooth_data(out_img, args.fwhm)
+        out_img = fmripop_smooth_data(out_img, args.fwhm[0]) # NOTE: This here is a hack because this version of nilearn does not really support a ndarray for fwhm
     params_dict['fwhm'] = args.fwhm.tolist() 
 
     fmripop_save_imgdata(args, out_img, output_tag=scrub_tag)
