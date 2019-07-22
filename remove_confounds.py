@@ -46,6 +46,12 @@ CASE 3: Calculates scrubbing mask, but DOES NOT remove contaminated volumes
                                --low-pass None 
                                --scrubbing
 
+CASE 4: Performs smoothing with a different width  Calculates scrubbing mask, but DOES NOT remove contaminated volumes
+    python remove_confounds.py --niipath /path/to/file/file_preproc.nii.gz
+                               --maskpath /path/to/file/file_brainmask.nii.gz
+                               --tsvpath /path/to/file/file_confounds.tsv'
+                               --low-pass None 
+                               --scrubbing
 TESTED WITH:
 # Anaconda 5.5.0
 # Python 3.7.0
@@ -100,6 +106,12 @@ def none_or_float(arg_value):
     if arg_value == 'None':
         return None
     return arg_value
+
+# Create class to parse numpy's ndarray
+class StoreNDArray(argparse._StoreAction):
+    def __call__(self, parser, namespace, values, option_string=None):
+        values = np.array(values)
+        return super().__call__(parser, namespace, values, option_string)
 
 # Create parser for options
 parser = argparse.ArgumentParser(
@@ -183,8 +195,18 @@ parser.add_argument('--remove_volumes',
     dest    = 'remove_volumes', 
     action  = 'store_true',
     default = False,
-    help    = 'This flag determines whether contamieated volumes should be removed from the output data.'
+    help    = 'This flag determines whether contaminated volumes should be removed from the output data.'
               'Default: True.')
+
+parser.add_argument('--fwhm',  
+   action = StoreNDArray, 
+   type = float,
+   nargs='+',
+   default = np.array([1.0]),
+   help = ''' Smoothing strength, expressed as as Full-Width at Half Maximum (fwhm), in millimeters. 
+              Can be: a single number --fwhm 1 in which case the fwhm is identical on all three directions x, y, z. 
+                                      --fwhm 0, no smoothing is peformed. 
+              An array with 3 elements (eg, --fwhm  1 1.5 2.5, giving the fwhm along each axis. ''') 
 
 
 def fmripop_remove_confounds(args):
@@ -351,6 +373,18 @@ def fmripop_remove_volumes(imgs, scrub_mask, args, this_dtype=np.float32):
     return out_img
 
 
+def fmripop_smooth_data(imgs, fwhm):
+    """
+    A wrapper of: 
+    https://nilearn.github.io/modules/generated/nilearn.image.smooth_img.html#nilearn.image.smooth_img
+    Smooth images by applying a Gaussian filter.
+    args.smoothing corresponds to the parameter 'fwhm'.
+
+    """
+    out_img = nl_image.smooth_img(imgs, fwhm)
+    return out_img
+
+
 def fmripop_save_imgdata(args, out_img, output_tag=''):
     """
     Saves the output 4D image 
@@ -395,6 +429,9 @@ if __name__ == '__main__':
             scrub_tag = '_scb'
         else:
             scrub_tag = ''
+
+    if not args.fwhm.sum(): # If fwhm is not zero, perform smoothing
+        out_img = fmripop_smooth_data(out_img, args.fwhm)
 
     fmripop_save_imgdata(args, out_img, output_tag=scrub_tag)
     fmripop_save_params(args, params_dict)
