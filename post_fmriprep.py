@@ -86,6 +86,7 @@ The reference paper, on scrubbing from which all the formulas come, is:
 
 # import standard python packages
 import argparse
+from argparse import RawTextHelpFormatter
 import time
 import json
 
@@ -115,98 +116,96 @@ class StoreNDArray(argparse._StoreAction):
 
 # Create parser for options
 parser = argparse.ArgumentParser(
-    description='Handle parameters to remove confounders from 4D frmi images.')
+    description='''Handle parameters to remove confounders from 4D frmi images.''',
+    formatter_class = RawTextHelpFormatter)
 
 # These parameters must be passed to the function
 parser.add_argument('--niipath',
     type    = str,
     default = None,
-    help    ='The path to the nii.gz file whose data will be cleaned.')
+    help    ='''The path to the nii.gz file whose data will be cleaned.''')
 
 parser.add_argument('--tsvpath', 
     type    = str,
     default = None,
-    help    ='The path to the tsv file with the confounders.')
+    help    ='''The path to the tsv file with the confounders.''''')
 
 parser.add_argument('--maskpath', 
     type    = str,
     default = None,
-    help    ='The path of the nii.gz file with the mask.')
+    help    ='''The path of the nii.gz file with the mask.''')
 
 # These parameters have default values. 
 parser.add_argument('--nconf',
     type    = int,
     default = 8,
-    help    = 'The number of confounds to be removed.')
+    help    = '''The number of confounds to be removed.''')
 
 parser.add_argument('--confound_list', 
     type    = list,
     default = ['csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z'],
-    help    = 'A list with the name of the confounds to remove. These are headers in the tsv file.')
+    help    = '''A list with the name of the confounds to remove. These are headers in the tsv file.''')
 
 parser.add_argument('--low_pass',
     type    = none_or_float, 
     default = 0.10,
-    help    ='The low-pass filter cutoff frequency in [Hz]. Set it to None if you dont want low-pass filtering.')
+    help    ='''The low-pass filter cutoff frequency in [Hz]. Set it to None if you dont want low-pass filtering.''')
 
 parser.add_argument('--high_pass',
     type    = none_or_float, 
     default = 0.01,
-    help    ='The high-pass filter cutoff frequency in [Hz]. Set it to None if you dont want high-pass filtering.' )
+    help    ='''The high-pass filter cutoff frequency in [Hz]. Set it to None if you dont want high-pass filtering.''' )
 
 parser.add_argument('--fmw_disp_th',
     dest    = 'fmw_disp_th', 
     type    = none_or_float, 
     default = 0.4,
-    help    ='''Threshold to binarize the timeseries of FramewiseDisplacement confound.
-                This value is typically between 0 and 1 [mm].
-                Set this flag to `None` if you do not wish to remove FramewiseDisplacement confound.''')
+    help    ='''Threshold to binarize the timeseries of FramewiseDisplacement confound. This value is typically between 0 and 1 [mm]. Set this flag to `None` if you do not wish to remove FramewiseDisplacement confound.''')
 
 parser.add_argument('--tr',
     type    = float,
     default = 0.81,
-    help    ='The repetition time (TR) in [seconds].')
+    help    ='''The repetition time (TR) in [seconds].''')
 
 parser.add_argument('--detrend', 
     dest    = 'detrend', 
     action  = 'store_true',
     default = True,
-    help    = 'Use this flag if you want to detrend the signals prior to confound removal.')
+    help    = '''Use this flag if you want to detrend the signals prior to confound removal.''')
 
 parser.add_argument('--standardize', 
     dest    = 'standardize', 
     action  = 'store_true',
     default = False,
-    help    = 'Use this flag if you want to standardize the output signal between [0 1].')
+    help    = '''Use this flag if you want to standardize the output signal between [0 1].''')
 
 parser.add_argument('--add_mean_img_back', 
     dest    = 'add_mean_img_back', 
     action  = 'store_true',
     default = True,
-    help    = 'Use this flag if you want to add the mean/average original image to the cleaned data, post filtering and confound regression. Disable this flag if you do not use high-pass filtering.')
+    help    = '''Use this flag if you want to add the mean/average original image to the cleaned data, post filtering and confound regression. Disable this flag if you do not use high-pass filtering.''')
 
 parser.add_argument('--scrubbing', 
     dest    = 'scrubbing', 
     action  = 'store_true', 
     default = False,
-    help    = 'Use this flag to scrub data (volume censoring). Default: False')
+    help    = '''Use this flag to scrub data (volume censoring). Default: False''')
 
 parser.add_argument('--remove_volumes', 
     dest    = 'remove_volumes', 
     action  = 'store_true',
     default = False,
-    help    = 'This flag determines whether contaminated volumes should be removed from the output data.'
-              'Default: True.')
+    help    = '''This flag determines whether contaminated volumes should be removed from the output data. Default: True.''')
 
 parser.add_argument('--fwhm',  
    action = StoreNDArray, 
    type = float,
    nargs='+',
    default = np.array([8.0]),
-   help = ''' Smoothing strength, expressed as as Full-Width at Half Maximum (fwhm), in millimeters. 
-              Can be: a single number --fwhm 1 in which case the fwhm is identical on all three directions x, y, z. 
-                                      --fwhm 0, no smoothing is peformed. 
-              An array with 3 elements (eg, --fwhm  1 1.5 2.5, giving the fwhm along each axis. ''') 
+   help = ''' Smoothing strength, expressed as as Full-Width at Half Maximum (fwhm), in [millimeters].
+              Can be: -> a single number --fwhm 8, the width is identical along x, y and z. 
+                                         --fwhm 0, no smoothing is peformed.
+                      -> an array with 3 elements, --fwhm  1 1.5 2.5, giving the fwhm along each axis. ''') 
 
 
 def fmripop_remove_confounds(args):
