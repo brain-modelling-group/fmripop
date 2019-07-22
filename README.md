@@ -36,7 +36,7 @@ Exemplary use cases are detailed below
 ```
     python remove_confounds.py --niipath /path/to/file/file_preproc.nii.gz
                                --maskpath /path/to/file/file_brainmask.nii.gz
-                               --tsvpath /path/to/file/file_confounds.tsv'
+                               --tsvpath /path/to/file/file_confounds.tsv
                                --low-pass None 
                                --high-pass None 
                                --fmw_disp_th None
@@ -47,7 +47,7 @@ Exemplary use cases are detailed below
 ```
     python remove_confounds.py --niipath /path/to/file/file_preproc.nii.gz
                                --maskpath /path/to/file/file_brainmask.nii.gz
-                               --tsvpath /path/to/file/file_confounds.tsv'
+                               --tsvpath /path/to/file/file_confounds.tsv
                                --scrubbing
                                --remove_volumes
 ```
@@ -57,7 +57,7 @@ Exemplary use cases are detailed below
 ```
     python remove_confounds.py --niipath /path/to/file/file_preproc.nii.gz
                                --maskpath /path/to/file/file_brainmask.nii.gz
-                               --tsvpath /path/to/file/file_confounds.tsv'
+                               --tsvpath /path/to/file/file_confounds.tsv
                                --low-pass None 
                                --scrubbing
 ```
@@ -67,6 +67,6 @@ Exemplary use cases are detailed below
 ```
     python remove_confounds.py --niipath /path/to/file/file_preproc.nii.gz
                                --maskpath /path/to/file/file_brainmask.nii.gz
-                               --tsvpath /path/to/file/file_confounds.tsv'
+                               --tsvpath /path/to/file/file_confounds.tsv
                                --fwhm 1.5 2.5 1.0
 ```
