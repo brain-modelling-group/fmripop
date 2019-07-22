@@ -227,10 +227,11 @@ def fmripop_remove_confounds(args):
     # label of framewise displacmeent confound as found in the tsv file
     fd_label = 'framewise_displacement'
 
-    #  Check if we want high-pass filtering:
-    #if args.high_pass is None:
+    #  Check if we want high-pass filtering. High-pass filtering essentially removes the mean/DC component of the signal.
+    if args.high_pass is None:
         # If we do not high-pass filter, disable adding the mean image back after cleaning the data.
-    #    args.add_mean_img_back = False
+        args.add_mean_img_back = False
+        args.detrend = False
 
     # Check if we want to regress framwise displacement
     if args.fmw_disp_th is not None:
@@ -290,6 +291,8 @@ def fmripop_remove_confounds(args):
     if args.add_mean_img_back:
         # Compute the mean of the images (in the time dimension of 4th dimension)
         orig_mean_img = nl_img.mean_img(args.niipath)
+        # Smooth mean image
+        orig_mean_img = fmripop_smooth_data(orig_mean_img, args.fwhm)
         for this_frame in range(time_frames):
         # Cache image data into memory and cast them into float32 
             data[..., this_frame] = temp_img.get_fdata(dtype=this_dtype)[..., this_frame] + orig_mean_img.get_fdata(dtype=this_dtype)
