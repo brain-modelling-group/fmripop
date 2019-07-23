@@ -54,7 +54,7 @@ CASE 4: Performs smoothing with a different width along each axis
 
 TESTED WITH:
 # Anaconda 5.5.0
-# Python 3.7.0
+# Python 3.7.0  
 # pandas 0.23.4
 # numpy 1.15.1
 # nilearn 0.5.0
@@ -227,11 +227,12 @@ def fmripop_remove_confounds(args):
     # label of framewise displacmeent confound as found in the tsv file
     fd_label = 'framewise_displacement'
 
-    #  Check if we want high-pass filtering. High-pass filtering essentially removes the mean/DC component of the signal.
-    if args.high_pass is None:
+    #  Check if we want high-pass filtering. 
+    # High-pass filtering essentially removes the mean/DC component of the signal, so we need to add it back.
+    #if args.high_pass is None:
         # If we do not high-pass filter, disable adding the mean image back after cleaning the data.
-        args.add_mean_img_back = False
-        args.detrend = False
+    #    args.add_mean_img_back = False
+    #    args.detrend = False
 
     # Check if we want to regress framwise displacement
     if args.fmw_disp_th is not None:
