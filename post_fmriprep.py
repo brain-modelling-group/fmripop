@@ -419,7 +419,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     out_img = fmripop_remove_confounds(args)
     params_dict = vars(args)
-
+    
+    scrub_tag = ''
     if args.scrubbing:
         scrub_mask = fmripop_calculate_scrub_mask(args)
         scbper, scbl, ol = frmipop_calculate_scrub_stats(scrub_mask, args)
