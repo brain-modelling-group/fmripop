@@ -1,3 +1,8 @@
+
+
+[![DOI](https://zenodo.org/badge/186916000.svg)](https://zenodo.org/badge/latestdoi/186916000)
+
+
 # fmripop
 A collection of python scripts and functions to (po)st(p)rocess fmridata, preprocessed with [fmriprep](https://github.com/poldracklab/fmriprep). 
 The main file is `post_fmriprep.py`, which enables users to:
