@@ -21,36 +21,43 @@ For help type:
 Usage:
 CASE 0: Uses Default values of parameters
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
-                               --maskpath /path/to/file/file_brainmask.nii.gz
-                               --tsvpath /path/to/file/file_confounds.tsv
+                            --maskpath /path/to/file/file_brainmask.nii.gz
+                            --tsvpath /path/to/file/file_confounds.tsv
 
 CASE 1: Does not regress `framwise displacement` -- used for task-fmri data
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
-                               --maskpath /path/to/file/file_brainmask.nii.gz
-                               --tsvpath /path/to/file/file_confounds.tsv'
-                               --low-pass None 
-                               --high-pass None 
-                               --fmw_disp_th None
+                            --maskpath /path/to/file/file_brainmask.nii.gz
+                            --tsvpath /path/to/file/file_confounds.tsv'
+                            --low-pass None 
+                            --high-pass None 
+                            --fmw_disp_th None
 
 CASE 2: Calculates scrubbing mask AND removes contaminated volumes
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
-                               --maskpath /path/to/file/file_brainmask.nii.gz
-                               --tsvpath /path/to/file/file_confounds.tsv'
-                               --calculate-scrubbing-mask
-                               --remove_volumes
+                            --maskpath /path/to/file/file_brainmask.nii.gz
+                            --tsvpath /path/to/file/file_confounds.tsv'
+                            --calculate-scrubbing-mask
+                            --remove_volumes
 
 CASE 3: Calculates scrubbing mask, but DOES NOT remove contaminated volumes
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
-                               --maskpath /path/to/file/file_brainmask.nii.gz
-                               --tsvpath /path/to/file/file_confounds.tsv'
-                               --low-pass None 
-                               --calculate-scrubbing-mask
+                            --maskpath /path/to/file/file_brainmask.nii.gz
+                            --tsvpath /path/to/file/file_confounds.tsv'
+                            --low-pass None 
+                            --calculate-scrubbing-mask
 
 CASE 4: Performs smoothing with a different width along each axis 
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
-                               --maskpath /path/to/file/file_brainmask.nii.gz
-                               --tsvpath /path/to/file/file_confounds.tsv'
-                               --fwhm 1.5 2.5 1.0
+                            --maskpath /path/to/file/file_brainmask.nii.gz
+                            --tsvpath /path/to/file/file_confounds.tsv'
+                            --fwhm 1.5 2.5 1.0
+
+CASE 5: Remove confounds other than the default value
+    python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
+                            --maskpath /path/to/file/file_brainmask.nii.gz
+                            --tsvpath /path/to/file/file_confounds.tsv
+                            --confound_list 
+
 
 TESTED WITH:
 # Anaconda 5.5.0
@@ -114,6 +121,11 @@ class StoreNDArray(argparse._StoreAction):
         values = np.array(values)
         return super().__call__(parser, namespace, values, option_string)
 
+class StoreStrList(argparse._StoreAction):
+    def __call__(self, parser, namespace, values, option_string=None):
+        values = [item for item in values.split(',')]
+        return super().__call__(parser, namespace, values, option_string)
+
 # Create parser for options
 parser = argparse.ArgumentParser(
     description='''Handle parameters to remove confounders from 4D frmi images.''',
@@ -142,8 +154,9 @@ parser.add_argument('--nconf',
     help    = '''The number of confounds to be removed.''')
 
 parser.add_argument('--confound_list', 
-    type    = list,
-    default = ['csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z'],
+    action = StoreStrList,
+    type    = str,
+    default = "csf, white_matter, trans_x, trans_y, trans_z, rot_x, rot_y, rot_z",
     help    = '''A list with the name of the confounds to remove. These are headers in the tsv file.''')
 
 parser.add_argument('--low_pass',
@@ -417,6 +430,9 @@ def fmripop_save_params(args, params_dict):
 if __name__ == '__main__':
 
     args = parser.parse_args()
+    #my_list = [item for item in args.confound_list.split(',')]
+    import pdb; pdb.set_trace()
+    #args.confound_list = my_list
     out_img = fmripop_remove_confounds(args)
     params_dict = vars(args)
     
