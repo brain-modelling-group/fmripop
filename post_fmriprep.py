@@ -12,7 +12,7 @@ Optionally, the user can ask for the scrubbing mask to be calculated
 AND the contaminated volumes to be removed from the output fmri data. 
 
 Find the latest version of this code at:
-https://github.com/pausz/fmripop/blob/master/remove_confounds.py
+https://github.com/pausz/fmripop/blob/master/post_fmriprep.py
 
 For help type:
     python remove_confounds.py -h
@@ -36,7 +36,7 @@ CASE 2: Calculates scrubbing mask AND removes contaminated volumes
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
                                --maskpath /path/to/file/file_brainmask.nii.gz
                                --tsvpath /path/to/file/file_confounds.tsv'
-                               --scrubbing
+                               --calculate-scrubbing-mask
                                --remove_volumes
 
 CASE 3: Calculates scrubbing mask, but DOES NOT remove contaminated volumes
@@ -44,7 +44,7 @@ CASE 3: Calculates scrubbing mask, but DOES NOT remove contaminated volumes
                                --maskpath /path/to/file/file_brainmask.nii.gz
                                --tsvpath /path/to/file/file_confounds.tsv'
                                --low-pass None 
-                               --scrubbing
+                               --calculate-scrubbing-mask
 
 CASE 4: Performs smoothing with a different width along each axis 
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
@@ -185,11 +185,11 @@ parser.add_argument('--add_mean_img_back',
     default = True,
     help    = '''Use this flag if you want to add the mean/average original image to the cleaned data, post filtering and confound regression. Disable this flag if you do not use high-pass filtering.''')
 
-parser.add_argument('--scrubbing', 
+parser.add_argument('--calculate-scrubbing-mask', 
     dest    = 'scrubbing', 
     action  = 'store_true', 
     default = False,
-    help    = '''Use this flag to scrub data (volume censoring). Default: False''')
+    help    = '''Use this flag to calculate scrubbing mask and scrubbing stats from data. If True, the script does not perform volume censoring/removal. Default: False''')
 
 parser.add_argument('--remove_volumes', 
     dest    = 'remove_volumes', 
@@ -419,7 +419,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     out_img = fmripop_remove_confounds(args)
     params_dict = vars(args)
-
+    
+    scrub_tag = ''
     if args.scrubbing:
         scrub_mask = fmripop_calculate_scrub_mask(args)
         scbper, scbl, ol = frmipop_calculate_scrub_stats(scrub_mask, args)
