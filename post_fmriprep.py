@@ -430,9 +430,6 @@ def fmripop_save_params(args, params_dict):
 if __name__ == '__main__':
 
     args = parser.parse_args()
-    #my_list = [item for item in args.confound_list.split(',')]
-    import pdb; pdb.set_trace()
-    #args.confound_list = my_list
     out_img = fmripop_remove_confounds(args)
     params_dict = vars(args)
     
