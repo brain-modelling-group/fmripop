@@ -52,11 +52,12 @@ CASE 4: Performs smoothing with a different width along each axis
                             --tsvpath /path/to/file/file_confounds.tsv'
                             --fwhm 1.5 2.5 1.0
 
-CASE 5: Remove confounds other than the default value
+CASE 5: Remove confounds other than the default list
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
                             --maskpath /path/to/file/file_brainmask.nii.gz
                             --tsvpath /path/to/file/file_confounds.tsv
-                            --confound_list 
+                            --confound_list "csf,white_matter"
+                            --nconf 2
 
 
 TESTED WITH:
@@ -88,7 +89,8 @@ The reference paper, on scrubbing from which all the formulas come, is:
 [4] http://www.sciencedirect.com/science/article/pii/S1053811911011815
 
 .. moduleauthor:: Paula Sanz-Leon <paula.sanz-leon@qimrberghofer.edu.au>
-    
+
+TIMESTAMP: Wed 26 Feb 15:12:27 AEST 2020
 """
 
 # import standard python packages
