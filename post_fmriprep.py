@@ -406,7 +406,7 @@ def fmripop_save_imgdata(args, out_img, output_tag=''):
 def fmripop_save_params(args, params_dict):
     # Save the input arguments in a text file with a timestamp
     #timestamp = time.strftime("%Y-%m-%d-%H%M%S")
-    filename = 'fmripop_parameters.txt'
+    filename = 'fmripop_parameters.json'
 
     with open(filename, 'w') as file:
         file.write(json.dumps(params_dict, indent=4, sort_keys=True)) # use `json.loads` to do the reverse
