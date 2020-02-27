@@ -90,7 +90,7 @@ The reference paper, on scrubbing from which all the formulas come, is:
 
 .. moduleauthor:: Paula Sanz-Leon <paula.sanz-leon@qimrberghofer.edu.au>
 
-TIMESTAMP: Wed 26 Feb 15:12:27 AEST 2020
+TIMESTAMP: Thu 27 Feb 14:02:36 AEST 2020
 """
 
 # import standard python packages
