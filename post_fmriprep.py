@@ -98,6 +98,7 @@ import argparse
 from argparse import RawTextHelpFormatter
 import time
 import json
+import os
 
 # import standard scientific python packages
 import numpy as np
@@ -158,7 +159,8 @@ parser.add_argument('--nconf',
 parser.add_argument('--confound_list', 
     action = StoreStrList,
     type    = str,
-    default = "csf, white_matter, trans_x, trans_y, trans_z, rot_x, rot_y, rot_z",
+    #default = "csf, white_matter, trans_x, trans_y, trans_z, rot_x, rot_y, rot_z",
+    default = ["csf", "white_matter", "trans_x", "trans_y", "trans_z", "rot_x", "rot_y", "rot_z"],
     help    = '''A list with the name of the confounds to remove. These are headers in the tsv file.''')
 
 parser.add_argument('--low_pass',
@@ -422,10 +424,10 @@ def fmripop_save_params(args, params_dict):
     # Save the input arguments in a text file with a timestamp
     #timestamp = time.strftime("%Y-%m-%d-%H%M%S")
     filename = 'fmripop_parameters.json'
+    jsonpath, _ = os.path.split(args.tsvpath) 
 
-    with open(filename, 'w') as file:
+    with open(os.path.sep.join((jsonpath, filename)), 'w') as file:
         file.write(json.dumps(params_dict, indent=4, sort_keys=True)) # use `json.loads` to do the reverse
-
     return
 
 
@@ -452,7 +454,6 @@ if __name__ == '__main__':
     if args.fwhm.sum(): # If fwhm is not zero, performs smoothing
         out_img = fmripop_smooth_data(out_img, args.fwhm[0]) # NOTE: This here is a hack because this version of nilearn does not really support a ndarray for fwhm
     params_dict['fwhm'] = args.fwhm.tolist() 
-
     fmripop_save_imgdata(args, out_img, output_tag=scrub_tag)
     fmripop_save_params(args, params_dict)
 
