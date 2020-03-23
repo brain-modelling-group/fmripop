@@ -116,7 +116,7 @@ start_time = time.time()
 def none_or_float(arg_value):
     if arg_value == 'None':
         return None
-    return arg_value
+    return float(arg_value)
 
 # Create class to parse numpy's ndarray
 class StoreNDArray(argparse._StoreAction):
