@@ -28,8 +28,8 @@ CASE 1: Does not regress `framwise displacement` -- used for task-fmri data
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
                             --maskpath /path/to/file/file_brainmask.nii.gz
                             --tsvpath /path/to/file/file_confounds.tsv'
-                            --low-pass None 
-                            --high-pass None 
+                            --low_pass None 
+                            --high_pass None 
                             --fmw_disp_th None
 
 CASE 2: Calculates scrubbing mask AND removes contaminated volumes
@@ -43,7 +43,7 @@ CASE 3: Calculates scrubbing mask, but DOES NOT remove contaminated volumes
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
                             --maskpath /path/to/file/file_brainmask.nii.gz
                             --tsvpath /path/to/file/file_confounds.tsv'
-                            --low-pass None 
+                            --low_pass None 
                             --calculate-scrubbing-mask
 
 CASE 4: Performs smoothing with a different width along each axis 
@@ -90,7 +90,7 @@ The reference paper, on scrubbing from which all the formulas come, is:
 
 .. moduleauthor:: Paula Sanz-Leon <paula.sanz-leon@qimrberghofer.edu.au>
 
-TIMESTAMP: Thu 23 Mar 13:42:36 AEST 2020
+TIMESTAMP: Sat 09 May 2020 15:52:32 AEST
 """
 
 # import standard python packages
