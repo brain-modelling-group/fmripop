@@ -90,7 +90,7 @@ The reference paper, on scrubbing from which all the formulas come, is:
 
 .. moduleauthor:: Paula Sanz-Leon <paula.sanz-leon@qimrberghofer.edu.au>
 
-TIMESTAMP: Sat 09 May 2020 15:52:32 AEST
+TIMESTAMP: Mon 17 Aug 2020 11:22:19 AEST
 """
 
 # import standard python packages
@@ -246,10 +246,10 @@ def fmripop_remove_confounds(args):
 
     #  Check if we want high-pass filtering. 
     # High-pass filtering essentially removes the mean/DC component of the signal, so we need to add it back.
-    #if args.high_pass is None:
+    if args.high_pass is None:
         # If we do not high-pass filter, disable adding the mean image back after cleaning the data.
-    #    args.add_mean_img_back = False
-    #    args.detrend = False
+        args.add_mean_img_back = False
+        args.detrend = False
 
     # Check if we want to regress framwise displacement
     if args.fmw_disp_th is not None:
