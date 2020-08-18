@@ -514,7 +514,7 @@ def fmripop_visual_debug(path_to_file, args):
     for this_time_series, this_label in zip(time_series.T, dmn_labels):
         plt.plot(this_time_series, label=this_label)
 
-    plt.title('Default Mode Network Time Series')
+    plt.title('Default Mode Network Time Series\n'+path_to_file)
     plt.xlabel('Scan number')
     plt.ylabel('Normalized signal')
     plt.legend()
