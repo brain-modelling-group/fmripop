@@ -514,13 +514,13 @@ def fmripop_visual_debug(path_to_file, args):
         plt.plot(this_time_series, label=this_label)
 
     plt.title('Default Mode Network Time Series\n'+path_to_file)
-    plt.xlabel('Scan number')
-    plt.ylabel('Normalized signal')
+    plt.xlabel('Frame')
+    plt.ylabel('Signal Amplitude')
     plt.legend()
     plt.tight_layout()
-    plt.show(block=False)
+    plt.show(block=True)
 
-   return None
+    return None
 
 
 
@@ -542,7 +542,7 @@ if __name__ == '__main__':
     if args.scrubbing:
        out_img = fmripop_scrub_data(out_img, args, params_dict)
 
-    if args.fwhm.sum(): # If fwhm is not zero, performs smoothing
+    if np.array(args.fwhm).sum(): # If fwhm is not zero, performs smoothing
         out_img = fmripop_smooth_data(out_img, args.fwhm) # NOTE: This here is a hack because this version  (0.5.0)of nilearn does not really support a ndarray for fwhm
     
     # Save output image and parameters used in this script
