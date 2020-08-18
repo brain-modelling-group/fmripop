@@ -485,11 +485,14 @@ if __name__ == '__main__':
     # Performs main task -- removing confounds
     out_img = fmripop_remove_confounds(args)
     
+    # Perform additional actions on data
     if args.scrubbing:
        out_img = fmripop_scrub_data(out_img, args, params_dict)
 
     if args.fwhm.sum(): # If fwhm is not zero, performs smoothing
         out_img = fmripop_smooth_data(out_img, args.fwhm) # NOTE: This here is a hack because this version of nilearn does not really support a ndarray for fwhm
+    
+    # Save output image and parameters used in this script
     fmripop_save_imgdata(args, out_img, output_tag=args.scrub_tag)
     fmripop_save_params(args, params_dict)
 
