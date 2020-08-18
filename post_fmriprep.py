@@ -177,7 +177,8 @@ parser.add_argument('--fmw_disp_th',
     dest    = 'fmw_disp_th', 
     type    = none_or_float, 
     default = 0.4,
-    help    ='''Threshold to binarize the timeseries of FramewiseDisplacement confound. This value is typically between 0 and 1 [mm]. Set this flag to `None` if you do not wish to remove FramewiseDisplacement confound.''')
+    help    ='''Threshold to binarize the timeseries of FramewiseDisplacement confound. This value is typically between 0 and 1 [mm]. 
+             Set this flag to `None` if you do not wish to remove FramewiseDisplacement confound.''')
 
 parser.add_argument('--tr',
     type    = float,
@@ -200,13 +201,16 @@ parser.add_argument('--add_mean_img_back',
     dest    = 'add_mean_img_back', 
     action  = 'store_true',
     default = True,
-    help    = '''Use this flag if you want to add the mean/average original image to the cleaned data, post filtering and confound regression. Disable this flag if you do not use high-pass filtering.''')
+    help    = '''Use this flag if you want to add the mean/average original image to the cleaned data, post filtering and confound regression. 
+               Disable this flag if you do not use high-pass filtering.''')
 
 parser.add_argument('--calculate-scrubbing-mask', 
     dest    = 'scrubbing', 
     action  = 'store_true', 
     default = False,
-    help    = '''Use this flag to calculate scrubbing mask and scrubbing stats from data. If True, the script does not perform volume censoring/removal. Default: False''')
+    help    = '''Use this flag to calculate scrubbing mask and scrubbing stats from data. 
+                 Default: False
+                 If True, the script does not perform volume censoring/removal. Use --remove_volumes to achieve that. ''')
 
 parser.add_argument('--remove_volumes', 
     dest    = 'remove_volumes', 
@@ -399,11 +403,22 @@ def fmripop_remove_volumes(imgs, scrub_mask, args, this_dtype=np.float32):
     return out_img
 
 
-def fmripop_scrub_data():
+def fmripop_scrub_data(out_img, args, params_dict):
     """
     Handle scrubbing associated actions
     """
-    return
+
+    scrub_mask = fmripop_calculate_scrub_mask(args)
+    scbper, scbl, ol = frmipop_calculate_scrub_stats(scrub_mask, args)
+    params_dict['scrub_mask'] = scrub_mask.tolist() # True: uncontaminated volume. False: contaminated volume
+    params_dict['original_length_min'] = ol
+    params_dict['scrubbed_length_min'] = scbl
+    params_dict['scrubbed_percentage'] = scbper
+
+    if args.remove_volumes:
+        out_img = fmripop_remove_volumes(out_img, scrub_mask, args)
+    
+    return out_img, params_dict
 
 
 def fmripop_save_imgdata(args, out_img, output_tag=''):
@@ -471,8 +486,9 @@ if __name__ == '__main__':
     # Performs main task -- removing confounds
     out_img = fmripop_remove_confounds(args)
     
-    scrub_tag = ''
     if args.scrubbing:
+        out_img, params_dict = fmripop_scrub_data(out_img, args, params_dict)
+
         scrub_mask = fmripop_calculate_scrub_mask(args)
         scbper, scbl, ol = frmipop_calculate_scrub_stats(scrub_mask, args)
         params_dict['scrub_mask'] = scrub_mask.tolist() # True: uncontaminated volume. False: contaminated volume
