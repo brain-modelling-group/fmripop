@@ -61,7 +61,6 @@ CASE 5: Remove confounds other than the default list
 
 
 TESTED WITH:
-# Anaconda 5.5.0
 # Python 3.8.3 
 # pandas 1.1.0
 # numpy 1.19.0
@@ -234,6 +233,13 @@ parser.add_argument('--scrub_tag',
     help    ='''The tag appended to the output fmri nifti file whose data underwent scrubbing/volume censoring. 
                 Default: empty string ''. 
                 Only taken into account if scrubbing is performed''')
+
+
+parser.add_argument('--debug', 
+    dest    = 'debug', 
+    action  = 'store_true',
+    default = False,
+    help    = '''This flag is only meant to be used for visual debugging. Don't execute it on a HPC environment''')
 
 
 def fmripop_smooth_data(imgs, fwhm):
@@ -420,7 +426,7 @@ def fmripop_scrub_data(out_img, args, params_dict):
     return out_img, params_dict
 
 
-def fmripop_save_imgdata(args, out_img, output_tag=''):
+def fmripop_save_imgdata(args, out_img, params_dict, output_tag=''):
     """
     Saves the output 4D image 
     """
@@ -432,7 +438,8 @@ def fmripop_save_imgdata(args, out_img, output_tag=''):
     output_filename += output_tag 
     # Save the clean data in a separate file
     out_img.to_filename(output_filename)
-    return
+    params_dict['outputpath'] = output_filename
+    return params_dict
 
 
 def fmripop_save_params(args, params_dict):
@@ -474,6 +481,51 @@ def fmripop_check_args(args):
     return args
 
 
+def fmripop_visual_debug(path_to_file, args):
+
+    """
+    Include basic plottion to check voxels in the Default Mode Network, MNI coordinates. 
+
+    """
+    dmn_coords = [(0, -52, 18), (-46, -68, 32), (46, -68, 32), (1, 50, -5)]
+    dmn_labels = [ 'Posterior Cingulate Cortex',
+                   'Left Temporoparietal junction',
+                   'Right Temporoparietal junction',
+                   'Medial prefrontal cortex',]
+
+
+    from nilearn import input_data
+    seed_radius = 8 # mm
+    masker = input_data.NiftiSpheresMasker(dmn_coords, radius=seed_radius, 
+                                                       standardize=False,
+                                                       t_r=args.tr,
+                                                       memory='nilearn_cache', 
+                                                       memory_level=1, 
+                                                       verbose=2)
+
+    # Additionally, we pass confound information to ensure our extracted
+    # signal is cleaned from confounds.
+    
+    time_series = masker.fit_transform(path_to_file)
+
+
+    import matplotlib.pyplot as plt
+
+    for this_time_series, this_label in zip(time_series.T, dmn_labels):
+        plt.plot(this_time_series, label=this_label)
+
+    plt.title('Default Mode Network Time Series')
+    plt.xlabel('Scan number')
+    plt.ylabel('Normalized signal')
+    plt.legend()
+    plt.tight_layout()
+    plt.show(block=False)
+
+   return None
+
+
+
+
 if __name__ == '__main__':
 
     # Read in user-specified parameters
@@ -484,7 +536,6 @@ if __name__ == '__main__':
     params_dict = vars(args)
     params_dict['fwhm'] = args.fwhm.tolist() 
 
-    import ipdb; ipdb.set_trace()
     # Performs main task -- removing confounds
     out_img = fmripop_remove_confounds(args)
     
@@ -496,7 +547,11 @@ if __name__ == '__main__':
         out_img = fmripop_smooth_data(out_img, args.fwhm) # NOTE: This here is a hack because this version  (0.5.0)of nilearn does not really support a ndarray for fwhm
     
     # Save output image and parameters used in this script
-    fmripop_save_imgdata(args, out_img, output_tag=args.scrub_tag)
+    params_dict = fmripop_save_imgdata(args, out_img, params_dict, output_tag=args.scrub_tag)
     fmripop_save_params(args, params_dict)
+
+    if args.debug:
+        fmripop_visual_debug(args.niipath, args)
+
 
     print("--- %s seconds ---" % (time.time() - start_time))
