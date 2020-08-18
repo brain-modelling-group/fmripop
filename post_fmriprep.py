@@ -486,22 +486,10 @@ if __name__ == '__main__':
     out_img = fmripop_remove_confounds(args)
     
     if args.scrubbing:
-        out_img, params_dict = fmripop_scrub_data(out_img, args, params_dict)
-
-        scrub_mask = fmripop_calculate_scrub_mask(args)
-        scbper, scbl, ol = frmipop_calculate_scrub_stats(scrub_mask, args)
-        params_dict['scrub_mask'] = scrub_mask.tolist() # True: uncontaminated volume. False: contaminated volume
-        params_dict['original_length_min'] = ol
-        params_dict['scrubbed_length_min'] = scbl
-        params_dict['scrubbed_percentage'] = scbper
-        if args.remove_volumes:
-            out_img = fmripop_remove_volumes(out_img, scrub_mask, args)
-            scrub_tag = '_scb'
-    else:
-        scrub_tag = ''
+       out_img = fmripop_scrub_data(out_img, args, params_dict)
 
     if args.fwhm.sum(): # If fwhm is not zero, performs smoothing
-        out_img = fmripop_smooth_data(out_img, args.fwhm[0]) # NOTE: This here is a hack because this version of nilearn does not really support a ndarray for fwhm
+        out_img = fmripop_smooth_data(out_img, args.fwhm) # NOTE: This here is a hack because this version of nilearn does not really support a ndarray for fwhm
     fmripop_save_imgdata(args, out_img, output_tag=scrub_tag)
     fmripop_save_params(args, params_dict)
 
