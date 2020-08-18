@@ -448,6 +448,11 @@ def fmripop_check_args(args):
         # Add it to the default confound list
         args.confound_list.append(fd_label)
         args.nconf += 1
+    
+    # If we want scrubbing check that the user has not specified a tag, otherwise set a default
+    empty_str = '' 
+    if args.scrubbing and (args.scrub_tag is not empty_str)
+       args.scrub_tag = '_scb'
 
     return args
 
