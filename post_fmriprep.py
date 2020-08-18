@@ -392,6 +392,13 @@ def fmripop_remove_volumes(imgs, scrub_mask, args, this_dtype=np.float32):
     return out_img
 
 
+def fmripop_scrub_data():
+    """
+    Handle scrubbing associated actions
+    """
+    return
+
+
 def fmripop_save_imgdata(args, out_img, output_tag=''):
     """
     Saves the output 4D image 
@@ -446,7 +453,9 @@ if __name__ == '__main__':
     args = fmripop_check_args(args)
     # Convert to dict() for saving later
     params_dict = vars(args)
+    params_dict['fwhm'] = args.fwhm.tolist() 
 
+    import ipdb; ipdb.set_trace()
     # Performs main task -- removing confounds
     out_img = fmripop_remove_confounds(args)
     
@@ -466,7 +475,6 @@ if __name__ == '__main__':
 
     if args.fwhm.sum(): # If fwhm is not zero, performs smoothing
         out_img = fmripop_smooth_data(out_img, args.fwhm[0]) # NOTE: This here is a hack because this version of nilearn does not really support a ndarray for fwhm
-    params_dict['fwhm'] = args.fwhm.tolist() 
     fmripop_save_imgdata(args, out_img, output_tag=scrub_tag)
     fmripop_save_params(args, params_dict)
 
