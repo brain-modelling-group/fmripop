@@ -503,9 +503,8 @@ def fmripop_visual_debug(path_to_file, args):
                                                        memory_level=1, 
                                                        verbose=2)
 
-    # Additionally, we pass confound information to ensure our extracted
-    # signal is cleaned from confounds.
     
+    # Extract time series from seed regions
     time_series = masker.fit_transform(path_to_file)
 
 
@@ -552,6 +551,6 @@ if __name__ == '__main__':
 
     if args.debug:
         fmripop_visual_debug(args.niipath, args)
-
+        fmripop_visual_debug(params_dict['outputpath'], args)
 
     print("--- %s seconds ---" % (time.time() - start_time))
