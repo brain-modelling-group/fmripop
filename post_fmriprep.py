@@ -224,6 +224,13 @@ parser.add_argument('--fwhm',
                                          --fwhm 0, no smoothing is peformed.
                       -> an array with 3 elements, --fwhm  1 1.5 2.5, giving the fwhm along each axis. ''') 
 
+parser.add_argument('--scrub_tag',
+    type    = str,
+    default = '',
+    help    ='''The tag appended to the output fmri nifti file whose data underwent scrubbing/volume censoring. 
+                Default: empty string ''. 
+                Only taken into account if scrubbing is performed''')
+
 
 def fmripop_smooth_data(imgs, fwhm):
     """
