@@ -62,11 +62,11 @@ CASE 5: Remove confounds other than the default list
 
 TESTED WITH:
 # Anaconda 5.5.0
-# Python 3.7.0  
-# pandas 0.23.4
-# numpy 1.15.1
-# nilearn 0.5.0
-# nibabel 2.3.1
+# Python 3.8.3 
+# pandas 1.1.0
+# numpy 1.19.0
+# nilearn 0.6.2
+# nibabel 3.1.1
 
 NOTES:
 Warning about using butterworth filter: https://github.com/nilearn/nilearn/issues/374
@@ -308,7 +308,7 @@ def fmripop_remove_confounds(args):
         # Compute the mean of the images (in the time dimension of 4th dimension)
         orig_mean_img = nl_img.mean_img(args.niipath)
         # Smooth mean image
-        orig_mean_img = fmripop_smooth_data(orig_mean_img, args.fwhm[0]) # NOTE: This here is a hack because this version of nilearn does not really support a ndarray for fwhm
+        orig_mean_img = fmripop_smooth_data(orig_mean_img, args.fwhm) # NOTE: This here is a hack because this version of nilearn does not really support a ndarray for fwhm
         for this_frame in range(time_frames):
         # Cache image data into memory and cast them into float32 
             data[..., this_frame] = temp_img.get_fdata(dtype=this_dtype)[..., this_frame] + orig_mean_img.get_fdata(dtype=this_dtype)
@@ -462,6 +462,9 @@ def fmripop_check_args(args):
         # Add it to the default confound list
         args.confound_list.append(fd_label)
         args.nconf += 1
+
+    # Cast single number or list to numpy array
+    args.fwhm = np.array(args.fwhm)
     
     # If we want scrubbing check that the user has not specified a tag, otherwise set a default
     empty_str = '' 
@@ -489,7 +492,7 @@ if __name__ == '__main__':
     if args.scrubbing:
        out_img = fmripop_scrub_data(out_img, args, params_dict)
 
-    if np.array(args.fwhm).sum(): # If fwhm is not zero, performs smoothing
+    if args.fwhm.sum(): # If fwhm is not zero, performs smoothing
         out_img = fmripop_smooth_data(out_img, args.fwhm) # NOTE: This here is a hack because this version  (0.5.0)of nilearn does not really support a ndarray for fwhm
     
     # Save output image and parameters used in this script
