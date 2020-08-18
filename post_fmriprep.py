@@ -490,7 +490,7 @@ if __name__ == '__main__':
 
     if args.fwhm.sum(): # If fwhm is not zero, performs smoothing
         out_img = fmripop_smooth_data(out_img, args.fwhm) # NOTE: This here is a hack because this version of nilearn does not really support a ndarray for fwhm
-    fmripop_save_imgdata(args, out_img, output_tag=scrub_tag)
+    fmripop_save_imgdata(args, out_img, output_tag=args.scrub_tag)
     fmripop_save_params(args, params_dict)
 
     print("--- %s seconds ---" % (time.time() - start_time))
