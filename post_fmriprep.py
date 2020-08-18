@@ -489,7 +489,7 @@ if __name__ == '__main__':
     if args.scrubbing:
        out_img = fmripop_scrub_data(out_img, args, params_dict)
 
-    if args.fwhm.sum(): # If fwhm is not zero, performs smoothing
+    if np.array(args.fwhm).sum(): # If fwhm is not zero, performs smoothing
         out_img = fmripop_smooth_data(out_img, args.fwhm) # NOTE: This here is a hack because this version  (0.5.0)of nilearn does not really support a ndarray for fwhm
     
     # Save output image and parameters used in this script
