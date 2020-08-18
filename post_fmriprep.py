@@ -465,7 +465,7 @@ def fmripop_check_args(args):
     
     # If we want scrubbing check that the user has not specified a tag, otherwise set a default
     empty_str = '' 
-    if args.scrubbing and (args.scrub_tag is not empty_str)
+    if args.scrubbing and (args.scrub_tag is not empty_str):
        args.scrub_tag = '_scbd'
 
     return args
@@ -490,7 +490,7 @@ if __name__ == '__main__':
        out_img = fmripop_scrub_data(out_img, args, params_dict)
 
     if args.fwhm.sum(): # If fwhm is not zero, performs smoothing
-        out_img = fmripop_smooth_data(out_img, args.fwhm) # NOTE: This here is a hack because this version of nilearn does not really support a ndarray for fwhm
+        out_img = fmripop_smooth_data(out_img, args.fwhm) # NOTE: This here is a hack because this version  (0.5.0)of nilearn does not really support a ndarray for fwhm
     
     # Save output image and parameters used in this script
     fmripop_save_imgdata(args, out_img, output_tag=args.scrub_tag)
