@@ -1,7 +1,7 @@
 #!/usr/bin/env python 
 
 """
-This modules uses three files:
+This module uses three files:
     1)  *_confounds.tsv 
     2)  *_preproc.nii.gz
     3)  *_brainmask.nii.gz
@@ -90,7 +90,7 @@ The reference paper, on scrubbing from which all the formulas come, is:
 
 .. moduleauthor:: Paula Sanz-Leon <paula.sanz-leon@qimrberghofer.edu.au>
 
-TIMESTAMP: Tue 18 Aug 2020 07:36:47 AEST
+TIMESTAMP: Tue 18 Aug 2020 17:13:56 AEST
 """
 
 # import standard python packages
@@ -243,18 +243,6 @@ def fmripop_remove_confounds(args):
     """
     # label of framewise displacmeent confound as found in the tsv file
     fd_label = 'framewise_displacement'
-
-    #  Check if we want high-pass filtering. 
-    # High-pass filtering essentially removes the mean/DC component of the signal, so we need to add it back.
-    if args.high_pass is None:
-        # If we do not high-pass filter, disable adding the mean image back after cleaning the data.
-        args.add_mean_img_back = False
-
-    # Check if we want to regress framwise displacement
-    if args.fmw_disp_th is not None:
-        # Add it to the default confound list
-        args.confound_list.append(fd_label)
-        args.nconf += 1
 
     # This loads the tsv file in a DataFrame.
     # The function  read_csv() infers the headers of each colum.
@@ -430,11 +418,37 @@ def fmripop_save_params(args, params_dict):
     return
 
 
+def fmripop_check_args(args):
+    """
+    Checks input arguments and sets other dependent arguments accrodingly
+    """
+
+    # Check if we want high-pass filtering. 
+    # High-pass filtering essentially removes the mean/DC component of the signal, so we need to add it back.
+    if args.high_pass is None:
+        # If we do not high-pass filter, disable adding the mean image back after cleaning the data.
+        args.add_mean_img_back = False
+
+    # Check if we want to regress framwise displacement
+    if args.fmw_disp_th is not None:
+        # Add it to the default confound list
+        args.confound_list.append(fd_label)
+        args.nconf += 1
+
+    return args
+
+
 if __name__ == '__main__':
 
+    # Read in user-specified parameters
     args = parser.parse_args()
-    out_img = fmripop_remove_confounds(args)
+    # Set derived Parameters according to user specified parameters
+    args = fmripop_check_args(args)
+    # Convert to dict() for saving later
     params_dict = vars(args)
+
+    # Performs main task -- removing confounds
+    out_img = fmripop_remove_confounds(args)
     
     scrub_tag = ''
     if args.scrubbing:
