@@ -407,7 +407,6 @@ def fmripop_scrub_data(out_img, args, params_dict):
     """
     Handle scrubbing associated actions
     """
-
     scrub_mask = fmripop_calculate_scrub_mask(args)
     scbper, scbl, ol = frmipop_calculate_scrub_stats(scrub_mask, args)
     params_dict['scrub_mask'] = scrub_mask.tolist() # True: uncontaminated volume. False: contaminated volume
@@ -467,7 +466,7 @@ def fmripop_check_args(args):
     # If we want scrubbing check that the user has not specified a tag, otherwise set a default
     empty_str = '' 
     if args.scrubbing and (args.scrub_tag is not empty_str)
-       args.scrub_tag = '_scb'
+       args.scrub_tag = '_scbd'
 
     return args
 
