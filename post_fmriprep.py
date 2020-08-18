@@ -36,7 +36,7 @@ CASE 2: Calculates scrubbing mask AND removes contaminated volumes
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
                             --maskpath /path/to/file/file_brainmask.nii.gz
                             --tsvpath /path/to/file/file_confounds.tsv'
-                            --calculate-scrubbing-mask
+                            --calculate_scrubbing_mask
                             --remove_volumes
 
 CASE 3: Calculates scrubbing mask, but DOES NOT remove contaminated volumes
@@ -204,7 +204,7 @@ parser.add_argument('--add_mean_img_back',
     help    = '''Use this flag if you want to add the mean/average original image to the cleaned data, post filtering and confound regression. 
                Disable this flag if you do not use high-pass filtering.''')
 
-parser.add_argument('--calculate-scrubbing-mask', 
+parser.add_argument('--calculate_scrubbing_mask', 
     dest    = 'scrubbing', 
     action  = 'store_true', 
     default = False,
