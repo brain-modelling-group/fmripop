@@ -19,7 +19,15 @@ For help type:
 
 
 Usage:
-CASE 0: Uses Default values of parameters
+CASE 0-a: Uses default values of non-boolean parameters (ie, confounds, filtering, tr)
+          and outputs data centred around a nonzero mean.
+    python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
+                            --maskpath /path/to/file/file_brainmask.nii.gz
+                            --tsvpath /path/to/file/file_confounds.tsv
+                            --add_mean_img
+
+CASE 0-b: Uses default values of non-boolean parameters (ie, confounds, filtering, tr)
+          and outputs zero-centred data (mean==0).
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
                             --maskpath /path/to/file/file_brainmask.nii.gz
                             --tsvpath /path/to/file/file_confounds.tsv
@@ -31,6 +39,7 @@ CASE 1: Does not regress `framwise displacement` -- used for task-fmri data
                             --low_pass None 
                             --high_pass None 
                             --fmw_disp_th None
+                            --add_mean_img
 
 CASE 2: Calculates scrubbing mask AND removes contaminated volumes
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
@@ -38,19 +47,22 @@ CASE 2: Calculates scrubbing mask AND removes contaminated volumes
                             --tsvpath /path/to/file/file_confounds.tsv'
                             --calculate_scrubbing_mask
                             --remove_volumes
+                            --add_mean_img
 
 CASE 3: Calculates scrubbing mask, but DOES NOT remove contaminated volumes
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
                             --maskpath /path/to/file/file_brainmask.nii.gz
                             --tsvpath /path/to/file/file_confounds.tsv'
                             --low_pass None 
-                            --calculate-scrubbing-mask
+                            --calculate_scrubbing_mask
+                            --add_mean_img
 
 CASE 4: Performs smoothing with a different width along each axis 
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
                             --maskpath /path/to/file/file_brainmask.nii.gz
                             --tsvpath /path/to/file/file_confounds.tsv'
                             --fwhm 1.5 2.5 1.0
+                            --add_mean_img
 
 CASE 5: Remove confounds other than the default list
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
@@ -58,7 +70,7 @@ CASE 5: Remove confounds other than the default list
                             --tsvpath /path/to/file/file_confounds.tsv
                             --confound_list "csf,white_matter"
                             --nconf 2
-
+                            --add_mean_img
 
 TESTED WITH:
 # Python 3.8.3 
