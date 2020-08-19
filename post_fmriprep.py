@@ -141,7 +141,6 @@ import pandas as pd
 # import neuroimaging packages
 import nilearn.image as nl_img
 import nilearn.masking as nl_mask 
-import nibabel as nib
 
 # Start tracking execution time
 start_time = time.time()
@@ -357,7 +356,7 @@ def fmripop_remove_confounds(args):
     *xyz, time_frames = temp_img.shape
     data = np.zeros(temp_img.shape, dtype=this_dtype)
 
-    if args.add_mean_img:
+    if args.add_orig_mean_img:
         # Compute the mean of the images (in the time dimension of 4th dimension)
         orig_mean_img = nl_img.mean_img(args.niipath)
         # Smooth mean image
@@ -504,7 +503,7 @@ def fmripop_check_args(args):
     Checks input arguments and sets other dependent arguments accrodingly
     """
 
-    # Check if we want to regress framwise displacement
+    # Check if we want to regress framwise displacement or not
     if args.fmw_disp_th is not None:
         # Add it to the default confound list
         args.confound_list.append(fd_label)
@@ -550,7 +549,6 @@ def fmripop_visual_debug(path_to_file, args):
     # Extract time series from seed regions
     time_series = masker.fit_transform(path_to_file)
 
-
     import matplotlib.pyplot as plt
 
     for this_time_series, this_label in zip(time_series.T, dmn_labels):
@@ -583,8 +581,8 @@ if __name__ == '__main__':
     if args.scrubbing:
        out_img = fmripop_scrub_data(out_img, args, params_dict)
 
-    #if np.array(args.fwhm).sum() > 0.0: # If fwhm is not zero, performs smoothing
-    #    out_img = fmripop_smooth_data(out_img, args.fwhm) # NOTE: This here is a hack because this version  (0.5.0)of nilearn does not really support a ndarray for fwhm
+    if np.array(args.fwhm).sum() > 0.0: # If fwhm is not zero, performs smoothing
+       out_img = fmripop_smooth_data(out_img, args.fwhm) 
     
     # Save output image and parameters used in this script
     params_dict = fmripop_save_imgdata(args, out_img, params_dict, output_tag=args.scrub_tag)
