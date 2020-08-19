@@ -124,7 +124,7 @@ The reference paper, on scrubbing from which all the formulas come, is:
 
 .. moduleauthor:: Paula Sanz-Leon <paula.sanz-leon@qimrberghofer.edu.au>
 
-TIMESTAMP: Tue 18 Aug 2020 17:13:56 AEST
+TIMESTAMP: Wed 19 Aug 2020 18:09:00 AEST
 """
 
 # import standard python packages
