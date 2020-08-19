@@ -41,7 +41,7 @@ non-boolean parameters are optimised for resting-state fmri data.
 ```
 
 
-##### CASE 0-b: Default values, typical use for resting state fmri data, zero-centred data.
+##### CASE 0-b: Default values, typical use for *resting state fmri data, zero-centred data*.
 Uses default values of non-boolean parameters (ie, confounds, filtering, tr)
 and outputs zero-centred data (mean==0).
 
