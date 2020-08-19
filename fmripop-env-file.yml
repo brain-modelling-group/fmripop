@@ -1,4 +1,4 @@
-name: nilearn-fmri-env
+name: fmripop-2-0-env
 channels:
   - defaults
 dependencies:
@@ -80,5 +80,3 @@ dependencies:
     - ptyprocess==0.6.0
     - pygments==2.6.1
     - traitlets==4.3.3
-
-prefix: /home/paula/anaconda3/envs/nilearn-fmri-env
