@@ -20,57 +20,80 @@ For help type:
 
 Usage:
 CASE 0-a: Uses default values of non-boolean parameters (ie, confounds, filtering, tr)
-          and outputs data centred around a nonzero mean.
+          and outputs data centred around a nonzero mean. The default values of these
+          non-boolean parameters are optimised for resting-state fmri data.
+
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
                             --maskpath /path/to/file/file_brainmask.nii.gz
                             --tsvpath /path/to/file/file_confounds.tsv
-                            --add_mean_img
+                            --detrend
+                            --add_orig_mean_img
+
 
 CASE 0-b: Uses default values of non-boolean parameters (ie, confounds, filtering, tr)
           and outputs zero-centred data (mean==0).
+
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
                             --maskpath /path/to/file/file_brainmask.nii.gz
                             --tsvpath /path/to/file/file_confounds.tsv
+                            --detrend
 
-CASE 1: Does not regress `framwise displacement` -- used for task-fmri data
+
+CASE 1: Typical use case for **task fmri data**.
+        Does not regress `framwise displacement` -- used for task-fmri data
+        Does not filter.
+        Uses default value for smoothing the data
+
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
                             --maskpath /path/to/file/file_brainmask.nii.gz
                             --tsvpath /path/to/file/file_confounds.tsv'
+                            --detrend
+                            --add_orig_mean_img
                             --low_pass None 
                             --high_pass None 
                             --fmw_disp_th None
-                            --add_mean_img
+
 
 CASE 2: Calculates scrubbing mask AND removes contaminated volumes
+
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
                             --maskpath /path/to/file/file_brainmask.nii.gz
                             --tsvpath /path/to/file/file_confounds.tsv'
+                            --detrend
+                            --add_orig_mean_img
                             --calculate_scrubbing_mask
                             --remove_volumes
-                            --add_mean_img
+
 
 CASE 3: Calculates scrubbing mask, but DOES NOT remove contaminated volumes
+
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
                             --maskpath /path/to/file/file_brainmask.nii.gz
                             --tsvpath /path/to/file/file_confounds.tsv'
-                            --low_pass None 
+                            --detrend
+                            --add_orig_mean_img
                             --calculate_scrubbing_mask
-                            --add_mean_img
+
 
 CASE 4: Performs smoothing with a different width along each axis 
+
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
                             --maskpath /path/to/file/file_brainmask.nii.gz
                             --tsvpath /path/to/file/file_confounds.tsv'
+                            --detrend
+                            --add_orig_mean_img
                             --fwhm 1.5 2.5 1.0
-                            --add_mean_img
 
-CASE 5: Remove confounds other than the default list
+
+CASE 5: Remove confounds other than those in the default list
+
     python post_fmriprep.py --niipath /path/to/file/file_preproc.nii.gz
                             --maskpath /path/to/file/file_brainmask.nii.gz
                             --tsvpath /path/to/file/file_confounds.tsv
+                            --detrend
+                            --add_orig_mean_img
                             --confound_list "csf,white_matter"
-                            --nconf 2
-                            --add_mean_img
+                            --num_confounds 2
 
 TESTED WITH:
 # Python 3.8.3 
@@ -162,39 +185,45 @@ parser.add_argument('--maskpath',
     help    ='''The path of the nii.gz file with the mask.''')
 
 # These parameters have default values. 
-parser.add_argument('--nconf',
+parser.add_argument('--num_confounds',
     type    = int,
     default = 8,
-    help    = '''The number of confounds to be removed.''')
+    help    = '''The number of confounds to be removed. Must match the number of confounds specified in --confound_list.
+                 Default: 8.''')
 
 parser.add_argument('--confound_list', 
     action = StoreStrList,
     type    = str,
     #default = "csf, white_matter, trans_x, trans_y, trans_z, rot_x, rot_y, rot_z",
     default = ["csf", "white_matter", "trans_x", "trans_y", "trans_z", "rot_x", "rot_y", "rot_z"],
-    help    = '''A list with the name of the confounds to remove. These are headers in the tsv file.''')
+    help    = '''A list with the name of the confounds to remove. These are headers in the tsv file.
+                 Default: csf, white_matter, trans_x, trans_y, trans_z, rot_x, rot_y, rot_z.''')
 
 parser.add_argument('--low_pass',
     type    = none_or_float, 
     default = 0.10,
-    help    ='''The low-pass filter cutoff frequency in [Hz]. Set it to None if you dont want low-pass filtering.''')
+    help    ='''The low-pass filter cutoff frequency in [Hz]. Set it to None if you dont want low-pass filtering.
+                Default: 0.1 Hz.''')
 
 parser.add_argument('--high_pass',
     type    = none_or_float, 
     default = 0.01,
-    help    ='''The high-pass filter cutoff frequency in [Hz]. Set it to None if you dont want high-pass filtering.''' )
+    help    ='''The high-pass filter cutoff frequency in [Hz]. Set it to None if you dont want high-pass filtering.
+                Default: 0.01 Hz.''' )
 
 parser.add_argument('--fmw_disp_th',
     dest    = 'fmw_disp_th', 
     type    = none_or_float, 
     default = 0.4,
-    help    ='''Threshold to binarize the timeseries of FramewiseDisplacement confound. This value is typically between 0 and 1 [mm]. 
-             Set this flag to `None` if you do not wish to remove FramewiseDisplacement confound.''')
+    help    ='''Threshold to binarize the timeseries of framewise_displacement confound. This value is typically between 0 and 1 [mm]. 
+                Set this flag to `None` if you do not wish to remove framewise_displacement confound.
+                Default: 0.4 mm.''')
 
 parser.add_argument('--tr',
     type    = float,
     default = 0.81,
-    help    ='''The repetition time (TR) in [seconds].''')
+    help    ='''The repetition time (TR) in [seconds].
+                Default: 0.81 s.''')
 
 parser.add_argument('--detrend', 
     dest    = 'detrend', 
@@ -209,8 +238,8 @@ parser.add_argument('--standardize',
     default = False,
     help    = '''Use this flag if you want to standardize the output signal between [0 1].''')
 
-parser.add_argument('--add_mean_img', 
-    dest    = 'add_mean_img', 
+parser.add_argument('--add_orig_mean_img', 
+    dest    = 'add_orig_mean_img', 
     action  = 'store_true',
     default = False,
     help    = '''Use this flag if you want to add the (nonzero) mean/average image of the original data to the cleaned data. 
@@ -241,24 +270,23 @@ parser.add_argument('--fwhm',
    nargs='+',
    default = np.array([8.0]),
    help = ''' Smoothing strength, expressed as as Full-Width at Half Maximum (fwhm), in [millimeters].
-              Can be: -> a single number --fwhm 8, the width is identical along x, y and z. 
+              Can be: -> a single number --fwhm 8, the width is identical along x, y and z. (Default)
                                          --fwhm 0, no smoothing is peformed.
-                      -> an array with 3 elements, --fwhm  1 1.5 2.5, giving the fwhm along each axis. ''') 
+                      -> three consecutive numbers, --fwhm 1 1.5 2.5, giving the fwhm along each axis. ''') 
 
 parser.add_argument('--scrub_tag',
     type    = str,
     default = '',
-    help    ='''The tag appended to the output fmri nifti file whose data underwent scrubbing/volume censoring. 
-                Default: empty string ''. 
-                Only taken into account if scrubbing is performed''')
-
+    help    ='''The tag appended to the output fmri nifti file whose data underwent scrubbing/volume censoring.
+                Only taken into account if scrubbing is performed 
+                Default: empty string ''' )
 
 parser.add_argument('--debug', 
     dest    = 'debug', 
     action  = 'store_true',
     default = False,
     help    = '''This flag is only meant to be used for visual debugging. Warning: Don't enable it on an HPC environment.
-                 Default: False.''')
+                Default: False.''')
 
 
 def fmripop_smooth_data(imgs, fwhm):
@@ -299,7 +327,7 @@ def fmripop_remove_confounds(args):
         frm_disp_bin = np.where(frm_disp > args.fmw_disp_th, 1.0, 0.0)
 
     # Allocate memory for the confound array
-    confounds_signals = np.zeros((tpts, args.nconf))
+    confounds_signals = np.zeros((tpts, args.num_confounds))
 
     # Build the confound array
     for idx, this_confound in enumerate(args.confound_list):
@@ -310,41 +338,39 @@ def fmripop_remove_confounds(args):
 
     # Check the numeric type of the input nii image
     print("Check datatype of input nii image [header]:")
-    #temp_img = nib.load(args.niipath)
     this_dtype = np.float32
     temp_img = nl_img.load_img(args.niipath, dtype=this_dtype)
-    out_img = temp_img
     # Print the datatype
-    # print(temp_img.header['datatype'].dtype)
+    print(temp_img.header['datatype'].dtype)
 
-    # # Do the stuff
-    # temp_img = nl_img.clean_img(args.niipath, 
-    #                             standardize=args.standardize, 
-    #                             detrend=args.detrend, 
-    #                             confounds=confounds_signals,
-    #                             t_r=args.tr,
-    #                             high_pass=args.high_pass, 
-    #                             low_pass=args.low_pass,
-    #                             mask_img=args.maskpath)
+    # Do the stuff
+    temp_img = nl_img.clean_img(args.niipath, 
+                                standardize=args.standardize, 
+                                detrend=args.detrend, 
+                                confounds=confounds_signals,
+                                t_r=args.tr,
+                                high_pass=args.high_pass, 
+                                low_pass=args.low_pass,
+                                mask_img=args.maskpath)
 
-    # # Add the mean image back into the clean image frames
-    # *xyz, time_frames = temp_img.shape
-    # data = np.zeros(temp_img.shape, dtype=this_dtype)
+    # Add the mean image back into the clean image frames
+    *xyz, time_frames = temp_img.shape
+    data = np.zeros(temp_img.shape, dtype=this_dtype)
 
-    # if args.add_mean_img_back:
-    #     # Compute the mean of the images (in the time dimension of 4th dimension)
-    #     orig_mean_img = nl_img.mean_img(args.niipath)
-    #     # Smooth mean image
-    #     orig_mean_img = fmripop_smooth_data(orig_mean_img, args.fwhm) 
-    #     for this_frame in range(time_frames):
-    #     # Cache image data into memory and cast them into float32 
-    #         data[..., this_frame] = temp_img.get_fdata(dtype=this_dtype)[..., this_frame] + orig_mean_img.get_fdata(dtype=this_dtype)
+    if args.add_mean_img:
+        # Compute the mean of the images (in the time dimension of 4th dimension)
+        orig_mean_img = nl_img.mean_img(args.niipath)
+        # Smooth mean image
+        orig_mean_img = fmripop_smooth_data(orig_mean_img, args.fwhm) 
+        for this_frame in range(time_frames):
+        # Cache image data into memory and cast them into float32 
+            data[..., this_frame] = temp_img.get_fdata(dtype=this_dtype)[..., this_frame] + orig_mean_img.get_fdata(dtype=this_dtype)
         
-    # else:
-    #     for this_frame in range(time_frames):
-    #     # Cache image data into memory and cast them into float32 
-    #         data[..., this_frame] = temp_img.get_fdata(dtype=this_dtype)[..., this_frame]
-    # out_img = nl_img.new_img_like(temp_img, data)
+    else:
+        for this_frame in range(time_frames):
+        # Cache image data into memory and cast them into float32 
+            data[..., this_frame] = temp_img.get_fdata(dtype=this_dtype)[..., this_frame]
+    out_img = nl_img.new_img_like(temp_img, data)
 
     return out_img
 
@@ -478,18 +504,11 @@ def fmripop_check_args(args):
     Checks input arguments and sets other dependent arguments accrodingly
     """
 
-    # Check if we want high-pass filtering. 
-    # High-pass filtering essentially removes the mean/DC component of the signal, so we need to add it back.
-    if args.high_pass is None:
-        # If we do not high-pass filter, disable adding the mean image back after cleaning the data.
-        args.add_mean_img_back = False
-        args.detrend = False
-
     # Check if we want to regress framwise displacement
     if args.fmw_disp_th is not None:
         # Add it to the default confound list
         args.confound_list.append(fd_label)
-        args.nconf += 1
+        args.num_confounds += 1
 
     # Cast single number or list to numpy array
     args.fwhm = np.array(args.fwhm)
@@ -545,8 +564,6 @@ def fmripop_visual_debug(path_to_file, args):
     plt.show(block=True)
 
     return None
-
-
 
 
 if __name__ == '__main__':
