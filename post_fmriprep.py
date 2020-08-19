@@ -209,15 +209,18 @@ parser.add_argument('--calculate_scrubbing_mask',
     dest    = 'scrubbing', 
     action  = 'store_true', 
     default = False,
-    help    = '''Use this flag to calculate scrubbing mask and scrubbing stats from data. 
+    help    = '''Use this flag to calculate scrubbing mask and scrubbing stats from data. Note that
+                 if this feature is enabled the script does not perform volume censoring/removal. 
+                 Use --remove_volumes to achieve volume censoring.
                  Default: False
-                 If True, the script does not perform volume censoring/removal. Use --remove_volumes to achieve that. ''')
+                 ''')
 
 parser.add_argument('--remove_volumes', 
     dest    = 'remove_volumes', 
     action  = 'store_true',
     default = False,
-    help    = '''This flag determines whether contaminated volumes should be removed from the output data. Default: True.''')
+    help    = '''This flag determines whether contaminated volumes should be removed from the output data. 
+                 Default: False.''')
 
 parser.add_argument('--fwhm',  
    action = StoreNDArray, 
