@@ -187,8 +187,9 @@ parser.add_argument('--tr',
 parser.add_argument('--detrend', 
     dest    = 'detrend', 
     action  = 'store_true',
-    default = True,
-    help    = '''Use this flag if you want to detrend the signals prior to confound removal.''')
+    default = False,
+    help    = '''Detrend data prior to confound removal. 
+                 Default: False.''')
 
 parser.add_argument('--standardize', 
     dest    = 'standardize', 
@@ -244,7 +245,8 @@ parser.add_argument('--debug',
     dest    = 'debug', 
     action  = 'store_true',
     default = False,
-    help    = '''This flag is only meant to be used for visual debugging. Don't execute it on a HPC environment''')
+    help    = '''This flag is only meant to be used for visual debugging. Warning: Don't enable it on an HPC environment.
+                 Default: False.''')
 
 
 def fmripop_smooth_data(imgs, fwhm):
