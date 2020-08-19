@@ -196,12 +196,14 @@ parser.add_argument('--standardize',
     default = False,
     help    = '''Use this flag if you want to standardize the output signal between [0 1].''')
 
-parser.add_argument('--add_mean_img_back', 
-    dest    = 'add_mean_img_back', 
+parser.add_argument('--add_mean_img', 
+    dest    = 'add_mean_img', 
     action  = 'store_true',
-    default = True,
-    help    = '''Use this flag if you want to add the mean/average original image to the cleaned data, post filtering and confound regression. 
-               Disable this flag if you do not use high-pass filtering.''')
+    default = False,
+    help    = '''Use this flag if you want to add the (nonzero) mean/average image of the original data to the cleaned data. 
+                 The additional is performed post filtering, confound regression and/or detrending, which have the effect of
+                 centering the data around zero (zero-centred data).
+                 Default: False.''')
 
 parser.add_argument('--calculate_scrubbing_mask', 
     dest    = 'scrubbing', 
@@ -291,40 +293,41 @@ def fmripop_remove_confounds(args):
 
     # Check the numeric type of the input nii image
     print("Check datatype of input nii image [header]:")
-    temp_img = nib.load(args.niipath)
-    # Print the datatype
-    print(temp_img.header['datatype'].dtype)
-
-    # Do the stuff
-    temp_img = nl_img.clean_img(args.niipath, 
-                                standardize=args.standardize, 
-                                detrend=args.detrend, 
-                                confounds=confounds_signals,
-                                t_r=args.tr,
-                                high_pass=args.high_pass, 
-                                low_pass=args.low_pass,
-                                mask_img=args.maskpath)
-
+    #temp_img = nib.load(args.niipath)
     this_dtype = np.float32
-    # Add the mean image back into the clean image frames
-    *xyz, time_frames = temp_img.shape
-    data = np.zeros(temp_img.shape, dtype=this_dtype)
+    temp_img = nl_img.load_img(args.niipath, dtype=this_dtype)
+    out_img = temp_img
+    # Print the datatype
+    # print(temp_img.header['datatype'].dtype)
 
-    if args.add_mean_img_back:
-        # Compute the mean of the images (in the time dimension of 4th dimension)
-        orig_mean_img = nl_img.mean_img(args.niipath)
-        # Smooth mean image
-        orig_mean_img = fmripop_smooth_data(orig_mean_img, args.fwhm) # NOTE: This here is a hack because this version of nilearn does not really support a ndarray for fwhm
-        for this_frame in range(time_frames):
-        # Cache image data into memory and cast them into float32 
-            data[..., this_frame] = temp_img.get_fdata(dtype=this_dtype)[..., this_frame] + orig_mean_img.get_fdata(dtype=this_dtype)
+    # # Do the stuff
+    # temp_img = nl_img.clean_img(args.niipath, 
+    #                             standardize=args.standardize, 
+    #                             detrend=args.detrend, 
+    #                             confounds=confounds_signals,
+    #                             t_r=args.tr,
+    #                             high_pass=args.high_pass, 
+    #                             low_pass=args.low_pass,
+    #                             mask_img=args.maskpath)
+
+    # # Add the mean image back into the clean image frames
+    # *xyz, time_frames = temp_img.shape
+    # data = np.zeros(temp_img.shape, dtype=this_dtype)
+
+    # if args.add_mean_img_back:
+    #     # Compute the mean of the images (in the time dimension of 4th dimension)
+    #     orig_mean_img = nl_img.mean_img(args.niipath)
+    #     # Smooth mean image
+    #     orig_mean_img = fmripop_smooth_data(orig_mean_img, args.fwhm) 
+    #     for this_frame in range(time_frames):
+    #     # Cache image data into memory and cast them into float32 
+    #         data[..., this_frame] = temp_img.get_fdata(dtype=this_dtype)[..., this_frame] + orig_mean_img.get_fdata(dtype=this_dtype)
         
-    else:
-        for this_frame in range(time_frames):
-        # Cache image data into memory and cast them into float32 
-            data[..., this_frame] = temp_img.get_fdata(dtype=this_dtype)[..., this_frame]
-
-    out_img = nl_img.new_img_like(temp_img, data)
+    # else:
+    #     for this_frame in range(time_frames):
+    #     # Cache image data into memory and cast them into float32 
+    #         data[..., this_frame] = temp_img.get_fdata(dtype=this_dtype)[..., this_frame]
+    # out_img = nl_img.new_img_like(temp_img, data)
 
     return out_img
 
@@ -463,6 +466,7 @@ def fmripop_check_args(args):
     if args.high_pass is None:
         # If we do not high-pass filter, disable adding the mean image back after cleaning the data.
         args.add_mean_img_back = False
+        args.detrend = False
 
     # Check if we want to regress framwise displacement
     if args.fmw_disp_th is not None:
@@ -498,6 +502,9 @@ def fmripop_visual_debug(path_to_file, args):
     seed_radius = 8 # mm
     masker = input_data.NiftiSpheresMasker(dmn_coords, radius=seed_radius, 
                                                        standardize=False,
+                                                       low_pass=None,
+                                                       high_pass=None,
+                                                       detrend=False,
                                                        t_r=args.tr,
                                                        memory='nilearn_cache', 
                                                        memory_level=1, 
@@ -542,8 +549,8 @@ if __name__ == '__main__':
     if args.scrubbing:
        out_img = fmripop_scrub_data(out_img, args, params_dict)
 
-    if np.array(args.fwhm).sum(): # If fwhm is not zero, performs smoothing
-        out_img = fmripop_smooth_data(out_img, args.fwhm) # NOTE: This here is a hack because this version  (0.5.0)of nilearn does not really support a ndarray for fwhm
+    #if np.array(args.fwhm).sum() > 0.0: # If fwhm is not zero, performs smoothing
+    #    out_img = fmripop_smooth_data(out_img, args.fwhm) # NOTE: This here is a hack because this version  (0.5.0)of nilearn does not really support a ndarray for fwhm
     
     # Save output image and parameters used in this script
     params_dict = fmripop_save_imgdata(args, out_img, params_dict, output_tag=args.scrub_tag)
