@@ -1,5 +1,5 @@
 
-
+If you use this script, please cite:
 [![DOI](https://zenodo.org/badge/186916000.svg)](https://zenodo.org/badge/latestdoi/186916000)
 
 
